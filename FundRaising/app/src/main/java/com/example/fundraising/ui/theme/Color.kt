@@ -2,10 +2,14 @@ package com.example.fundraising.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Blue80 = Color(0xFFA10101)
-val BlueGrey80 = Color(0xFF404E56)
-val DarkBlue80 = Color(0xFF030170)
+val font_color = Color(0xFF967BB6)
 
-val Blue40 = Color(0xFF11FF00)
-val BlueGrey40 = Color(0xFF79909B)
-val DarkBlue40 = Color(0xFF02009D)
+val Primary_dark = Color(0xFF4FA619)
+val onPrimary_dark = Color(0xFFF8F8FF)
+val Secondary_dark = Color(0xFFE1E1E6)
+val Tertiary_dark = Color(0xFFB4B4BF)
+
+val Primary_light = Color(0xFF61BF26)
+val onPrimary_light = Color(0xFFF8F8FF)
+val Secondary_light = Color(0xFF1A1A1A)
+val Tertiary_light = Color(0xFFF8F8FF)
