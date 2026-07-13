@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -49,7 +51,7 @@ fun LoginScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
@@ -133,11 +135,12 @@ fun LoginScreen(modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
+            colors = ButtonDefaults.buttonColors(contentColor = MaterialTheme.colorScheme.primary)
             ) {
             Text(
                 text = "Login",
                 fontSize = 20.sp,
-                color = Color(0xFFF8F8FF),
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -159,12 +162,12 @@ fun BackButton() {
         onClick = {
 
         },
-        modifier = Modifier
-            .padding(10.dp)
+        modifier = Modifier.padding(top = 10.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
     ) {
         Text(
             text = "Back",
-            color = Color(0xFFF8F8FF)
+            color = MaterialTheme.colorScheme.onPrimary
         )
     }
 }
