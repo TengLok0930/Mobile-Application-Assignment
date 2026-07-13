@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.FontScaling
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fundraising.presentation.LoginScreen
 import com.example.fundraising.ui.theme.FundRaisingTheme
 
 class MainActivity : ComponentActivity() {
@@ -48,7 +49,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             FundRaisingTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ProfileScreen(modifier = Modifier.padding(innerPadding))
+                    LoginScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -124,7 +125,10 @@ fun BackButton() {
         modifier = Modifier
             .padding(10.dp)
     ) {
-        Text(text = "Back")
+        Text(
+            text = "Back",
+            color = Color(0xFFF8F8FF)
+        )
     }
 }
 
@@ -144,8 +148,15 @@ fun ProgressBar(currentProgress: Float) {
 
 @Preview(showBackground = true)
 @Composable
+fun LoginScreenPreview() {
+    FundRaisingTheme {
+        LoginScreen()
+    }
+}
+
+/*
 fun ProfileCardPreview() {
     FundRaisingTheme {
         ProfileScreen()
     }
-}
+} */
