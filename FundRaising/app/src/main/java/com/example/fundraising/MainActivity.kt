@@ -1,6 +1,6 @@
 package com.example.fundraising
 
-import android.R
+import com.example.fundraising.R
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.ComponentActivity
@@ -39,7 +39,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.FontScaling
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fundraising.presentation.ChatroomPage
 import com.example.fundraising.presentation.LoginScreen
+import com.example.fundraising.presentation.ProjectPage
 import com.example.fundraising.ui.theme.FundRaisingTheme
 
 class MainActivity : ComponentActivity() {
@@ -49,114 +51,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             FundRaisingTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    LoginScreen(modifier = Modifier.padding(innerPadding))
+                    ChatroomPage(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
 }
-
-@Composable
-fun ProfileScreen(modifier: Modifier = Modifier) {
-    Card(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-
-        BackButton()
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(110.dp)
-                        .background(color = MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Profile Image
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(10.dp),
-                        text = "Project 1",
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center,
-                        fontSize = 30.sp
-                    )
-
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(10.dp),
-                        text = "Organisation 1",
-                        color = MaterialTheme.colorScheme.secondary,
-                        textAlign = TextAlign.Center,
-                        fontSize = 30.sp
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            ProgressBar(0.5F)
-        }
-    }
-}
-
-@Composable
-fun BackButton() {
-    Button(
-        onClick = {
-
-        },
-        modifier = Modifier
-            .padding(10.dp)
-    ) {
-        Text(
-            text = "Back",
-            color = Color(0xFFF8F8FF)
-        )
-    }
-}
-
-@Composable
-fun ProgressBar(currentProgress: Float) {
-    LinearProgressIndicator(
-        modifier = Modifier
-            .fillMaxWidth()
-            .size(8.dp)
-            .border(width = 1.dp, color = MaterialTheme.colorScheme.primary)
-            .clip(RoundedCornerShape(2.dp)),
-        progress = { currentProgress },
-        color = MaterialTheme.colorScheme.primary,
-        trackColor = MaterialTheme.colorScheme.secondary
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    FundRaisingTheme {
-        LoginScreen()
-    }
-}
-
-/*
-fun ProfileCardPreview() {
-    FundRaisingTheme {
-        ProfileScreen()
-    }
-} */
