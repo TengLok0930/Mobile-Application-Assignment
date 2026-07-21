@@ -1,0 +1,95 @@
+package com.example.fundforgoals.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.fundforgoals.feature.auth.presentation.login.LoginRoute
+import com.example.fundforgoals.feature.auth.presentation.login.LoginViewModel
+import com.example.fundforgoals.feature.chat.presentation.ChatRoute
+import com.example.fundforgoals.feature.chat.presentation.ChatViewModel
+import com.example.fundforgoals.feature.member.home.presentation.MemberHomeRoute
+import com.example.fundforgoals.feature.member.home.presentation.MemberHomeViewModel
+import com.example.fundforgoals.feature.member.project_detail.presentation.MemberProjectDetailRoute
+
+@Composable
+fun AppNavHost(
+    modifier: Modifier = Modifier,
+    navController: NavHostController = rememberNavController()
+) {
+    NavHost(
+        navController = navController,
+        startDestination = AppDestination.Login.route,
+        modifier = modifier
+    ) {
+        composable(route = AppDestination.Login.route) {
+            LoginRoute(
+                viewModel = viewModel<LoginViewModel>(),
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onForgotPasswordClick = {
+                },
+                onSignUpClick = {
+                },
+                onLoginSuccess = {
+                    navController.navigate(AppDestination.MemberHome.route) {
+                        popUpTo(AppDestination.Login.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+
+        composable(route = AppDestination.MemberHome.route) {
+            MemberHomeRoute(
+                viewModel = viewModel<MemberHomeViewModel>(),
+                onProjectSelected = { projectId ->
+                    navController.navigate(
+                        AppDestination.MemberProjectDetail.createRoute(projectId)
+                    )
+                },
+                onMessagesClick = {
+                    navController.navigate(AppDestination.Chat.route)
+                },
+                onProfileClick = {
+                }
+            )
+        }
+
+        composable(route = AppDestination.Chat.route) {
+            ChatRoute(
+                viewModel = viewModel<ChatViewModel>(),
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = AppDestination.MemberProjectDetail.route,
+            arguments = listOf(
+                navArgument("projectId") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val projectId = backStackEntry.arguments?.getString("projectId").orEmpty()
+
+            MemberProjectDetailRoute(
+                projectId = projectId,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onContributeClick = {
+                }
+            )
+        }
+    }
+}

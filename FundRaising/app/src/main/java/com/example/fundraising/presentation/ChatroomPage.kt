@@ -49,7 +49,7 @@ fun ChatroomPage(modifier: Modifier = Modifier) {
     var input by remember { mutableStateOf("") }
     val messages = remember {
         mutableStateListOf(
-            ChatroomData("Hi, i want to fund this project", true),
+            Chatroom("Hi, i want to fund this project", true),
             ChatroomData("Hi, how much you want to fund?", false)
         )
     }
