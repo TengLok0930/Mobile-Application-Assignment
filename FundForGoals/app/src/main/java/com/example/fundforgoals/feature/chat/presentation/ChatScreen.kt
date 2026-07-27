@@ -2,29 +2,37 @@ package com.example.fundforgoals.feature.chat.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,16 +46,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fundforgoals.R
+import com.example.fundforgoals.core.ui.theme.BrandAccentDark
+import com.example.fundforgoals.core.ui.theme.BrandAccentLight
+import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalConfiguration
 
 @Composable
 fun ChatScreen(
     uiState: ChatUiState,
     onAction: (ChatAction) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showConversationList: Boolean = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 ) {
     val listState = rememberLazyListState()
+    val accentColor = if (isSystemInDarkTheme()) {
+        BrandAccentDark
+    } else {
+        BrandAccentLight
+    }
 
-    LaunchedEffect(uiState.messages.size) {
+    LaunchedEffect(uiState.messages.size, uiState.selectedConversationId) {
         if (uiState.messages.isNotEmpty()) {
             listState.animateScrollToItem(uiState.messages.lastIndex)
         }
@@ -64,7 +82,9 @@ fun ChatScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -79,7 +99,7 @@ fun ChatScreen(
 
                 Text(
                     modifier = Modifier.weight(1f),
-                    text = uiState.projectTitle,
+                    text = "Chatroom",
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 22.sp,
@@ -100,79 +120,314 @@ fun ChatScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            Row(
+                modifier = Modifier.fillMaxSize()
             ) {
-                LazyColumn(
-                    state = listState,
+                if (showConversationList) {
+                    Card(
+                        modifier = Modifier
+                            .weight(0.95f)
+                            .fillMaxHeight(),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        ConversationPane(
+                            searchText = uiState.searchQuery,
+                            selectedConversationId = uiState.selectedConversationId,
+                            conversations = uiState.conversations,
+                            onSearchChanged = {
+                                onAction(ChatAction.OnSearchQueryChanged(it))
+                            },
+                            onConversationSelected = { id ->
+                                onAction(ChatAction.OnConversationSelected(id))
+                            }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+
+                Card(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    contentPadding = PaddingValues(vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                        .weight(1.65f)
+                        .fillMaxHeight(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    items(uiState.messages, key = { it.id }) { message ->
-                        MessageBubble(message)
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 16.dp)
+                        ) {
+                            Text(
+                                text = "Chatroom",
+                                color = accentColor,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text(
+                                text = uiState.projectTitle,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                        )
+
+                        if (uiState.messages.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No messages yet.",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 16.sp
+                                )
+                            }
+                        } else {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                                    .padding(horizontal = 12.dp),
+                                contentPadding = PaddingValues(vertical = 12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(uiState.messages, key = { it.id }) { message ->
+                                    MessageBubble(message = message)
+                                }
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                onClick = { onAction(ChatAction.OnAddClick) },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.add_24px),
+                                    contentDescription = "Add"
+                                )
+                            }
+
+                            OutlinedTextField(
+                                value = uiState.input,
+                                onValueChange = {
+                                    onAction(ChatAction.OnInputChanged(it))
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 8.dp),
+                                placeholder = {
+                                    Text("Type a message")
+                                },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                                ),
+                                singleLine = true
+                            )
+
+                            IconButton(
+                                onClick = { onAction(ChatAction.OnSendClick) },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.send_24px),
+                                    contentDescription = "Send"
+                                )
+                            }
+                        }
                     }
                 }
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = { onAction(ChatAction.OnAddClick) },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.add_24px),
-                        contentDescription = "Add"
-                    )
-                }
-
-                OutlinedTextField(
-                    value = uiState.input,
-                    onValueChange = {
-                        onAction(ChatAction.OnInputChanged(it))
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp),
-                    placeholder = {
-                        Text("Type a message")
-                    },
-                    shape = RoundedCornerShape(16.dp)
+@Composable
+private fun ConversationPane(
+    searchText: String,
+    selectedConversationId: String?,
+    conversations: List<ConversationUi>,
+    onSearchChanged: (String) -> Unit,
+    onConversationSelected: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        OutlinedTextField(
+            value = searchText,
+            onValueChange = onSearchChanged,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            placeholder = {
+                Text("Search chat", fontSize = 16.sp)
+            },
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.search_24px),
+                    contentDescription = "Search"
                 )
+            },
+            shape = RoundedCornerShape(28.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+            ),
+            singleLine = true
+        )
 
-                IconButton(
-                    onClick = { onAction(ChatAction.OnSendClick) },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.send_24px),
-                        contentDescription = "Send"
+        Spacer(modifier = Modifier.height(20.dp))
+
+        if (conversations.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No conversations found.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(conversations, key = { it.id }) { conversation ->
+                    ConversationItem(
+                        title = conversation.title,
+                        subtitle = conversation.subtitle,
+                        date = conversation.date,
+                        isSelected = conversation.id == selectedConversationId,
+                        onClick = { onConversationSelected(conversation.id) }
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ConversationItem(
+    title: String,
+    subtitle: String,
+    date: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val borderColor = if (isSelected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+    }
+
+    val containerColor = if (isSelected) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(containerColor)
+            .border(
+                width = 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(16.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .border(
+                    1.dp,
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outline
+                    },
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = title.firstOrNull()?.uppercase() ?: "P",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = title,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = subtitle,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Text(
+            text = date,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -183,11 +438,11 @@ private fun MessageBubble(message: ChatMessageUi) {
         horizontalArrangement = if (message.isMe) Arrangement.End else Arrangement.Start
     ) {
         if (message.isMe) {
-            ChatBox(message)
+            ChatBox(message = message, isMe = true)
             UserIcon(isMe = true)
         } else {
             UserIcon(isMe = false)
-            ChatBox(message)
+            ChatBox(message = message, isMe = false)
         }
     }
 }
@@ -205,19 +460,22 @@ private fun UserIcon(isMe: Boolean) {
                 },
                 shape = RoundedCornerShape(16.dp)
             )
-            .padding(12.dp)
+            .size(24.dp)
     )
 }
 
 @Composable
-private fun ChatBox(message: ChatMessageUi) {
+private fun ChatBox(
+    message: ChatMessageUi,
+    isMe: Boolean
+) {
     Box(
         modifier = Modifier
             .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(12.dp))
             .border(
                 width = 1.dp,
-                color = if (message.isMe) {
+                color = if (isMe) {
                     MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.secondary
@@ -237,8 +495,8 @@ private fun ChatBox(message: ChatMessageUi) {
 
             Text(
                 text = message.timestamp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 10.sp
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

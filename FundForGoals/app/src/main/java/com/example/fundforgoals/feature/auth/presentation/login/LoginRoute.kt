@@ -1,6 +1,7 @@
 package com.example.fundforgoals.feature.auth.presentation.login
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -10,9 +11,16 @@ fun LoginRoute(
     onBackClick: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     onSignUpClick: () -> Unit,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.isLoginSuccessful) {
+        if (uiState.isLoginSuccessful) {
+            onLoginSuccess(uiState.username)
+            viewModel.onLoginNavigated()
+        }
+    }
 
     LoginScreen(
         uiState = uiState,
@@ -21,10 +29,6 @@ fun LoginRoute(
                 LoginAction.OnBackClick -> onBackClick()
                 LoginAction.OnForgotPasswordClick -> onForgotPasswordClick()
                 LoginAction.OnSignUpClick -> onSignUpClick()
-                LoginAction.OnLoginClick -> {
-                    viewModel.onAction(action)
-                    onLoginSuccess()
-                }
                 else -> viewModel.onAction(action)
             }
         }
