@@ -9,6 +9,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeRoute
+import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeViewModel
+import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestRoute
+import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestViewModel
 import com.example.fundforgoals.feature.auth.presentation.login.LoginRoute
 import com.example.fundforgoals.feature.auth.presentation.login.LoginViewModel
 import com.example.fundforgoals.feature.chat.presentation.ChatRoute
@@ -37,8 +41,14 @@ fun AppNavHost(
                 },
                 onSignUpClick = {
                 },
-                onLoginSuccess = {
-                    navController.navigate(AppDestination.MemberHome.route) {
+                onLoginSuccess = { username ->
+                    val destination = if (username.trim().equals("admin", ignoreCase = true)) {
+                        AppDestination.AdminHome.route
+                    } else {
+                        AppDestination.MemberHome.route
+                    }
+
+                    navController.navigate(destination) {
                         popUpTo(AppDestination.Login.route) {
                             inclusive = true
                         }
@@ -57,6 +67,35 @@ fun AppNavHost(
                 },
                 onMessagesClick = {
                     navController.navigate(AppDestination.Chat.route)
+                },
+                onProfileClick = {
+                }
+            )
+        }
+
+        composable(route = AppDestination.AdminHome.route) {
+            AdminHomeRoute(
+                viewModel = viewModel<AdminHomeViewModel>(),
+                onRequestClick = {
+                    navController.navigate(AppDestination.AdminRequest.route)
+                },
+                onMonitorProjectClick = {
+                },
+                onProfileClick = {
+                }
+            )
+        }
+
+        composable(route = AppDestination.AdminRequest.route) {
+            AdminRequestRoute(
+                viewModel = viewModel<AdminRequestViewModel>(),
+                onHomeClick = {
+                    navController.navigate(AppDestination.AdminHome.route) {
+                        popUpTo(AppDestination.AdminHome.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
                 },
                 onProfileClick = {
                 }

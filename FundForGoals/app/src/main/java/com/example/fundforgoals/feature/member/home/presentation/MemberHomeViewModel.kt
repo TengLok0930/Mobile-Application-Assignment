@@ -13,19 +13,32 @@ class MemberHomeViewModel : ViewModel() {
             id = "1",
             title = "Project 1",
             organisation = "Organisation 1",
-            description = "Description 1"
+            description = "Description 1",
+            progress = 0.45f,
+            contributionAmount = 500
         ),
         ProjectUi(
             id = "2",
             title = "Project 2",
             organisation = "Organisation 2",
-            description = "Description 2"
+            description = "Description 2",
+            progress = 0.70f,
+            contributionAmount = 850
+        ),
+        ProjectUi(
+            id = "3",
+            title = "Project 3",
+            organisation = "Organisation 3",
+            description = "Description 3",
+            progress = 0.30f,
+            contributionAmount = 300
         )
     )
 
     private val _uiState = MutableStateFlow(
         MemberHomeUiState(
-            projects = allProjects
+            projects = allProjects,
+            selectedProjectId = allProjects.firstOrNull()?.id
         )
     )
     val uiState: StateFlow<MemberHomeUiState> = _uiState.asStateFlow()
@@ -39,28 +52,38 @@ class MemberHomeViewModel : ViewModel() {
                                 it.organisation.contains(action.value, ignoreCase = true)
                     }
 
+                    val selectedStillExists = filteredProjects.any {
+                        it.id == currentState.selectedProjectId
+                    }
+
                     currentState.copy(
                         searchQuery = action.value,
-                        projects = filteredProjects
+                        projects = filteredProjects,
+                        selectedProjectId = when {
+                            filteredProjects.isEmpty() -> null
+                            selectedStillExists -> currentState.selectedProjectId
+                            else -> filteredProjects.first().id
+                        }
                     )
                 }
             }
 
             is MemberHomeAction.OnProjectClick -> {
+                _uiState.update {
+                    it.copy(selectedProjectId = action.projectId)
+                }
             }
 
-            MemberHomeAction.OnMessagesClick -> {
-            }
-
-            MemberHomeAction.OnHomeClick -> {
-            }
-
-            MemberHomeAction.OnProfileClick -> {
-            }
+            MemberHomeAction.OnMessagesClick -> Unit
+            MemberHomeAction.OnHomeClick -> Unit
+            MemberHomeAction.OnProfileClick -> Unit
 
             MemberHomeAction.Refresh -> {
                 _uiState.update {
-                    it.copy(projects = allProjects)
+                    it.copy(
+                        projects = allProjects,
+                        selectedProjectId = allProjects.firstOrNull()?.id
+                    )
                 }
             }
         }
