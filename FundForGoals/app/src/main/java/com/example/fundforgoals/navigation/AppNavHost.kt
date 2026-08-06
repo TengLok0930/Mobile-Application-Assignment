@@ -9,6 +9,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeRoute
+import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeViewModel
+import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestRoute
+import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestViewModel
 import com.example.fundforgoals.feature.auth.presentation.login.LoginRoute
 import com.example.fundforgoals.feature.auth.presentation.login.LoginViewModel
 import com.example.fundforgoals.feature.chat.presentation.ChatRoute
@@ -39,21 +43,20 @@ fun AppNavHost(
                 },
                 onSignUpClick = {
                 },
-<<<<<<< Updated upstream
-                onLoginSuccess = {
-                    navController.navigate(AppDestination.MemberHome.route) {
-=======
                 onLoginSuccess = { username ->
                     val destination = if (username.trim().equals("admin", ignoreCase = true)) {
                         AppDestination.AdminHome.route
                     } else if (username.trim().equals("org", ignoreCase = true)) {
                         AppDestination.OrganisationHome.route
+                onLoginSuccess = { username ->
+                    val destination = if (username.trim().equals("admin", ignoreCase = true)) {
+                        AppDestination.AdminHome.route
                     } else {
                         AppDestination.MemberHome.route
                     }
 
                     navController.navigate(destination) {
->>>>>>> Stashed changes
+
                         popUpTo(AppDestination.Login.route) {
                             inclusive = true
                         }
@@ -78,8 +81,6 @@ fun AppNavHost(
             )
         }
 
-<<<<<<< Updated upstream
-=======
         composable(route = AppDestination.OrganisationHome.route) {
             OrganisationHomeRoute(
                 viewModel = viewModel<OrganisationHomeViewModel>(),
@@ -125,7 +126,6 @@ fun AppNavHost(
             )
         }
 
->>>>>>> Stashed changes
         composable(route = AppDestination.Chat.route) {
             ChatRoute(
                 viewModel = viewModel<ChatViewModel>(),
