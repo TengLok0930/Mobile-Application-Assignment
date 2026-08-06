@@ -20,6 +20,8 @@ import com.example.fundforgoals.feature.chat.presentation.ChatViewModel
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeViewModel
 import com.example.fundforgoals.feature.member.project_detail.presentation.MemberProjectDetailRoute
+import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeRoute
+import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeViewModel
 
 @Composable
 fun AppNavHost(
@@ -44,6 +46,8 @@ fun AppNavHost(
                 onLoginSuccess = { username ->
                     val destination = if (username.trim().equals("admin", ignoreCase = true)) {
                         AppDestination.AdminHome.route
+                    } else if (username.trim().equals("org", ignoreCase = true)) {
+                        AppDestination.OrganisationHome.route
                     } else {
                         AppDestination.MemberHome.route
                     }
@@ -63,6 +67,22 @@ fun AppNavHost(
                 onProjectSelected = { projectId ->
                     navController.navigate(
                         AppDestination.MemberProjectDetail.createRoute(projectId)
+                    )
+                },
+                onMessagesClick = {
+                    navController.navigate(AppDestination.Chat.route)
+                },
+                onProfileClick = {
+                }
+            )
+        }
+
+        composable(route = AppDestination.OrganisationHome.route) {
+            OrganisationHomeRoute(
+                viewModel = viewModel<OrganisationHomeViewModel>(),
+                onProjectSelected = { projectId ->
+                    navController.navigate(
+                        AppDestination.OrganisationProjectDetail.createRoute(projectId)
                     )
                 },
                 onMessagesClick = {
