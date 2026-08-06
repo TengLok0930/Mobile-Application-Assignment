@@ -16,6 +16,8 @@ import com.example.fundforgoals.feature.chat.presentation.ChatViewModel
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeViewModel
 import com.example.fundforgoals.feature.member.project_detail.presentation.MemberProjectDetailRoute
+import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeRoute
+import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeViewModel
 
 @Composable
 fun AppNavHost(
@@ -37,8 +39,21 @@ fun AppNavHost(
                 },
                 onSignUpClick = {
                 },
+<<<<<<< Updated upstream
                 onLoginSuccess = {
                     navController.navigate(AppDestination.MemberHome.route) {
+=======
+                onLoginSuccess = { username ->
+                    val destination = if (username.trim().equals("admin", ignoreCase = true)) {
+                        AppDestination.AdminHome.route
+                    } else if (username.trim().equals("org", ignoreCase = true)) {
+                        AppDestination.OrganisationHome.route
+                    } else {
+                        AppDestination.MemberHome.route
+                    }
+
+                    navController.navigate(destination) {
+>>>>>>> Stashed changes
                         popUpTo(AppDestination.Login.route) {
                             inclusive = true
                         }
@@ -63,6 +78,54 @@ fun AppNavHost(
             )
         }
 
+<<<<<<< Updated upstream
+=======
+        composable(route = AppDestination.OrganisationHome.route) {
+            OrganisationHomeRoute(
+                viewModel = viewModel<OrganisationHomeViewModel>(),
+                onProjectSelected = { projectId ->
+                    navController.navigate(
+                        AppDestination.OrganisationProjectDetail.createRoute(projectId)
+                    )
+                },
+                onMessagesClick = {
+                    navController.navigate(AppDestination.Chat.route)
+                },
+                onProfileClick = {
+                }
+            )
+        }
+
+        composable(route = AppDestination.AdminHome.route) {
+            AdminHomeRoute(
+                viewModel = viewModel<AdminHomeViewModel>(),
+                onRequestClick = {
+                    navController.navigate(AppDestination.AdminRequest.route)
+                },
+                onMonitorProjectClick = {
+                },
+                onProfileClick = {
+                }
+            )
+        }
+
+        composable(route = AppDestination.AdminRequest.route) {
+            AdminRequestRoute(
+                viewModel = viewModel<AdminRequestViewModel>(),
+                onHomeClick = {
+                    navController.navigate(AppDestination.AdminHome.route) {
+                        popUpTo(AppDestination.AdminHome.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onProfileClick = {
+                }
+            )
+        }
+
+>>>>>>> Stashed changes
         composable(route = AppDestination.Chat.route) {
             ChatRoute(
                 viewModel = viewModel<ChatViewModel>(),
