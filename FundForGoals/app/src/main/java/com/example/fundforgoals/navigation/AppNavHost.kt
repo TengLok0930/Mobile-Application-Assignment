@@ -15,6 +15,8 @@ import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequest
 import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestViewModel
 import com.example.fundforgoals.feature.auth.presentation.login.LoginRoute
 import com.example.fundforgoals.feature.auth.presentation.login.LoginViewModel
+import com.example.fundforgoals.feature.auth.presentation.register.RegisterRoute
+import com.example.fundforgoals.feature.auth.presentation.register.RegisterViewModel
 import com.example.fundforgoals.feature.chat.presentation.ChatRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatViewModel
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeRoute
@@ -42,6 +44,7 @@ fun AppNavHost(
                 onForgotPasswordClick = {
                 },
                 onSignUpClick = {
+                    navController.navigate(AppDestination.Register.route)
                 },
                 onLoginSuccess = { username ->
                     val destination = if (username.trim().equals("admin", ignoreCase = true)) {
@@ -53,6 +56,25 @@ fun AppNavHost(
                     }
 
                     navController.navigate(destination) {
+                        popUpTo(AppDestination.Login.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+
+        composable(route = AppDestination.Register.route) {
+            RegisterRoute(
+                viewModel = viewModel<RegisterViewModel>(),
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onLoginClick = {
+                    navController.popBackStack()
+                },
+                onRegisterSuccess = {
+                    navController.navigate(AppDestination.MemberHome.route) {
                         popUpTo(AppDestination.Login.route) {
                             inclusive = true
                         }
