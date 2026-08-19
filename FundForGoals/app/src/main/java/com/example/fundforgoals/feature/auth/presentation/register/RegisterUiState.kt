@@ -1,9 +1,8 @@
 package com.example.fundforgoals.feature.auth.presentation.register
 
 data class RegisterUiState(
-    val fullName: String = "",
-    val email: String = "",
     val username: String = "",
+    val socialUrl: String = "",
     val password: String = "",
     val confirmPassword: String = "",
     val isPasswordVisible: Boolean = false,
@@ -13,9 +12,7 @@ data class RegisterUiState(
     val isRegisterSuccessful: Boolean = false
 ) {
     val isRegisterEnabled: Boolean
-        get() = fullName.isNotBlank() &&
-            email.isNotBlank() &&
-            username.isNotBlank() &&
+        get() = username.isNotBlank() &&
             password.isNotBlank() &&
             confirmPassword.isNotBlank()
 }

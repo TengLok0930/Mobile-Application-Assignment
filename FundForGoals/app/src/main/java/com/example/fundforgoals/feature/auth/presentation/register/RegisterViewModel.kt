@@ -6,8 +6,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-private val EMAIL_REGEX = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
-
 class RegisterViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegisterUiState())
@@ -15,26 +13,6 @@ class RegisterViewModel : ViewModel() {
 
     fun onAction(action: RegisterAction) {
         when (action) {
-            is RegisterAction.OnFullNameChanged -> {
-                _uiState.update {
-                    it.copy(
-                        fullName = action.value,
-                        errorMessage = null,
-                        isRegisterSuccessful = false
-                    )
-                }
-            }
-
-            is RegisterAction.OnEmailChanged -> {
-                _uiState.update {
-                    it.copy(
-                        email = action.value,
-                        errorMessage = null,
-                        isRegisterSuccessful = false
-                    )
-                }
-            }
-
             is RegisterAction.OnUsernameChanged -> {
                 _uiState.update {
                     it.copy(
@@ -49,6 +27,16 @@ class RegisterViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         password = action.value,
+                        errorMessage = null,
+                        isRegisterSuccessful = false
+                    )
+                }
+            }
+
+            is RegisterAction.OnSocialUrlChanged -> {
+                _uiState.update {
+                    it.copy(
+                        socialUrl = action.value,
                         errorMessage = null,
                         isRegisterSuccessful = false
                     )
@@ -116,7 +104,6 @@ class RegisterViewModel : ViewModel() {
     private fun validate(state: RegisterUiState): String? {
         return when {
             !state.isRegisterEnabled -> "All fields are required!"
-            !EMAIL_REGEX.matches(state.email.trim()) -> "Please enter a valid email address!"
             state.password.length < 6 -> "Password must be at least 6 characters!"
             state.password != state.confirmPassword -> "Passwords do not match!"
             else -> null

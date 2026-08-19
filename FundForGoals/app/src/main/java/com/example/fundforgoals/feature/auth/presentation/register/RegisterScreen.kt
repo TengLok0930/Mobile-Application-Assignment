@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -65,6 +66,7 @@ fun RegisterScreen(
     Surface(
         modifier = modifier
             .statusBarsPadding()
+            .navigationBarsPadding()
             .fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
@@ -94,39 +96,7 @@ fun RegisterScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                modifier = Modifier.align(Alignment.Start),
-                text = "Register to start supporting projects you care about",
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                fontSize = 14.sp
-            )
-
             Spacer(modifier = Modifier.height(32.dp))
-
-            LabeledField(
-                label = "Full Name",
-                value = uiState.fullName,
-                placeholder = "Enter your full name",
-                placeholderColor = placeholderColor,
-                colors = textFieldColors,
-                onValueChange = { onAction(RegisterAction.OnFullNameChanged(it)) }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            LabeledField(
-                label = "Email",
-                value = uiState.email,
-                placeholder = "Enter your email",
-                placeholderColor = placeholderColor,
-                colors = textFieldColors,
-                keyboardType = KeyboardType.Email,
-                onValueChange = { onAction(RegisterAction.OnEmailChanged(it)) }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             LabeledField(
                 label = "Username",
@@ -135,6 +105,18 @@ fun RegisterScreen(
                 placeholderColor = placeholderColor,
                 colors = textFieldColors,
                 onValueChange = { onAction(RegisterAction.OnUsernameChanged(it)) }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            LabeledField(
+                label = "Social URL",
+                value = uiState.socialUrl,
+                placeholder = "Link to your social profile",
+                placeholderColor = placeholderColor,
+                colors = textFieldColors,
+                keyboardType = KeyboardType.Uri,
+                onValueChange = { onAction(RegisterAction.OnSocialUrlChanged(it)) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
