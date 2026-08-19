@@ -18,9 +18,7 @@ fun rememberContentType(): ContentType {
     val windowSizeClass = calculateWindowSizeClass(activity)
 
     return when (windowSizeClass.widthSizeClass) {
-        WindowWidthSizeClass.Medium,
         WindowWidthSizeClass.Expanded -> ContentType.LIST_AND_DETAIL
-
         else -> ContentType.LIST_ONLY
     }
 }
