@@ -3,6 +3,7 @@ package com.example.fundforgoals.navigation
 sealed class AppDestination(val route: String) {
     data object Login : AppDestination("login")
     data object SignUpChoice : AppDestination("sign_up_choice")
+    data object MemberSignUp : AppDestination("member_sign_up")
     data object OrganisationSignUp : AppDestination("organisation_sign_up")
 
     data object MemberHome : AppDestination("member_home")

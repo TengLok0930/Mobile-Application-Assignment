@@ -21,6 +21,8 @@ import com.example.fundforgoals.feature.admin.warning_detail.presentation.AdminW
 import com.example.fundforgoals.feature.admin.warning_detail.presentation.AdminWarningDetailViewModel
 import com.example.fundforgoals.feature.auth.login.presentation.LoginRoute
 import com.example.fundforgoals.feature.auth.login.presentation.LoginViewModel
+import com.example.fundforgoals.feature.auth.registration.member.MemberRegRoute
+import com.example.fundforgoals.feature.auth.registration.member.MemberRegViewModel
 import com.example.fundforgoals.feature.auth.registration.organisation.presentation.OrganisationRegRoute
 import com.example.fundforgoals.feature.auth.registration.organisation.presentation.OrganisationRegViewModel
 import com.example.fundforgoals.feature.auth.registration.signup_choice.presentation.SignUpChoiceRoute
@@ -86,10 +88,34 @@ fun AppNavHost(
                     navController.popBackStack()
                 },
                 onMemberClick = {
-                    // Add member registration route here later.
+                    navController.navigate(AppDestination.MemberSignUp.route) {
+                        launchSingleTop = true
+                    }
                 },
                 onOrganisationClick = {
                     navController.navigate(AppDestination.OrganisationSignUp.route) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(route = AppDestination.MemberSignUp.route) {
+            MemberRegRoute(
+                viewModel = viewModel<MemberRegViewModel>(),
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onLoginClick = {
+                    navController.navigate(AppDestination.Login.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onRegisterSuccess = {
+                    navController.navigate(AppDestination.Login.route) {
+                        popUpTo(AppDestination.Login.route) {
+                            inclusive = true
+                        }
                         launchSingleTop = true
                     }
                 }
