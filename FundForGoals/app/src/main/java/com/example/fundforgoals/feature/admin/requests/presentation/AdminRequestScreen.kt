@@ -12,11 +12,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,8 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fundforgoals.app.navigation.AdminBottomBar
-import com.example.fundforgoals.app.navigation.AdminNavigationRail
+import com.example.fundforgoals.core.ui.components.navigation.AdminBottomBar
+import com.example.fundforgoals.core.ui.components.navigation.AdminNavigationRail
 import com.example.fundforgoals.core.ui.components.navigation.BackButton
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
@@ -48,31 +47,11 @@ fun AdminRequestScreen(
     isCompact: Boolean = true
 ) {
     if (isCompact) {
-        when {
-            uiState.selectedType == null -> {
-                AdminRequestCompactIncomingScreen(
-                    uiState = uiState,
-                    onAction = onAction,
-                    modifier = modifier
-                )
-            }
-
-            uiState.selectedRequestId == null -> {
-                AdminRequestCompactCategoryScreen(
-                    uiState = uiState,
-                    onAction = onAction,
-                    modifier = modifier
-                )
-            }
-
-            else -> {
-                AdminRequestCompactDetailScreen(
-                    uiState = uiState,
-                    onAction = onAction,
-                    modifier = modifier
-                )
-            }
-        }
+        AdminRequestCompactScreen(
+            uiState = uiState,
+            onAction = onAction,
+            modifier = modifier
+        )
     } else {
         AdminRequestExpandedScreen(
             uiState = uiState,
@@ -83,44 +62,86 @@ fun AdminRequestScreen(
 }
 
 @Composable
+private fun AdminRequestCompactScreen(
+    uiState: AdminRequestUiState,
+    onAction: (AdminRequestAction) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    when {
+        uiState.selectedType == null -> {
+            AdminRequestCompactIncomingScreen(
+                uiState = uiState,
+                onAction = onAction,
+                modifier = modifier
+            )
+        }
+
+        uiState.selectedRequestId == null -> {
+            AdminRequestCompactCategoryScreen(
+                uiState = uiState,
+                onAction = onAction,
+                modifier = modifier
+            )
+        }
+
+        else -> {
+            AdminRequestCompactDetailScreen(
+                uiState = uiState,
+                onAction = onAction,
+                modifier = modifier
+            )
+        }
+    }
+}
+
+@Composable
 private fun AdminRequestCompactIncomingScreen(
     uiState: AdminRequestUiState,
     onAction: (AdminRequestAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-        ) {
-            Text(
-                text = "Requests",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            IncomingCategoryList(
-                categories = uiState.categories,
-                onCategoryClick = { type ->
-                    onAction(AdminRequestAction.OnCategoryClick(type))
-                },
-                modifier = Modifier.weight(1f)
-            )
-
+    Scaffold(
+        modifier = modifier
+            .statusBarsPadding()
+            .fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
             AdminBottomBar(
                 selectedItem = "requests",
                 onRequestsClick = { onAction(AdminRequestAction.OnRequestsClick) },
                 onHomeClick = { onAction(AdminRequestAction.OnHomeClick) },
                 onProfileClick = { onAction(AdminRequestAction.OnProfileClick) }
             )
+        }
+    ) { innerPadding ->
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Text(
+                    text = "Incoming requests",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                IncomingCategoryList(
+                    categories = uiState.categories,
+                    onCategoryClick = { type ->
+                        onAction(AdminRequestAction.OnCategoryClick(type))
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
@@ -133,15 +154,25 @@ private fun AdminRequestCompactCategoryScreen(
 ) {
     val title = uiState.selectedType?.toCategoryTitle() ?: "Requests"
 
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(
+    Scaffold(
+        modifier = modifier
+            .statusBarsPadding()
+            .fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            AdminBottomBar(
+                selectedItem = "requests",
+                onRequestsClick = { onAction(AdminRequestAction.OnRequestsClick) },
+                onHomeClick = { onAction(AdminRequestAction.OnHomeClick) },
+                onProfileClick = { onAction(AdminRequestAction.OnProfileClick) }
+            )
+        }
+    ) { innerPadding ->
+        Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(innerPadding),
+            color = MaterialTheme.colorScheme.background
         ) {
             CategoryRequestsPane(
                 title = title,
@@ -151,14 +182,9 @@ private fun AdminRequestCompactCategoryScreen(
                 onRequestClick = { requestId ->
                     onAction(AdminRequestAction.OnRequestClick(requestId))
                 },
-                modifier = Modifier.weight(1f)
-            )
-
-            AdminBottomBar(
-                selectedItem = "requests",
-                onRequestsClick = { onAction(AdminRequestAction.OnRequestsClick) },
-                onHomeClick = { onAction(AdminRequestAction.OnHomeClick) },
-                onProfileClick = { onAction(AdminRequestAction.OnProfileClick) }
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
             )
         }
     }
@@ -170,15 +196,25 @@ private fun AdminRequestCompactDetailScreen(
     onAction: (AdminRequestAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(
+    Scaffold(
+        modifier = modifier
+            .statusBarsPadding()
+            .fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            AdminBottomBar(
+                selectedItem = "requests",
+                onRequestsClick = { onAction(AdminRequestAction.OnRequestsClick) },
+                onHomeClick = { onAction(AdminRequestAction.OnHomeClick) },
+                onProfileClick = { onAction(AdminRequestAction.OnProfileClick) }
+            )
+        }
+    ) { innerPadding ->
+        Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(innerPadding),
+            color = MaterialTheme.colorScheme.background
         ) {
             RequestDetailPane(
                 request = uiState.selectedRequest,
@@ -186,14 +222,9 @@ private fun AdminRequestCompactDetailScreen(
                 onBackClick = { onAction(AdminRequestAction.OnBackFromDetailClick) },
                 onAcceptClick = { onAction(AdminRequestAction.OnAcceptRequestClick) },
                 onRejectClick = { onAction(AdminRequestAction.OnRejectRequestClick) },
-                modifier = Modifier.weight(1f)
-            )
-
-            AdminBottomBar(
-                selectedItem = "requests",
-                onRequestsClick = { onAction(AdminRequestAction.OnRequestsClick) },
-                onHomeClick = { onAction(AdminRequestAction.OnHomeClick) },
-                onProfileClick = { onAction(AdminRequestAction.OnProfileClick) }
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
             )
         }
     }
@@ -215,7 +246,7 @@ private fun AdminRequestExpandedScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .padding(20.dp)
         ) {
             AdminNavigationRail(
                 selectedItem = "requests",
@@ -224,22 +255,21 @@ private fun AdminRequestExpandedScreen(
                 onProfileClick = { onAction(AdminRequestAction.OnProfileClick) }
             )
 
-            Spacer(modifier = Modifier.width(20.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             Card(
                 modifier = Modifier
-                    .weight(0.95f)
+                    .weight(1f)
                     .fillMaxHeight(),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                )
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(20.dp)
+                        .padding(16.dp)
                 ) {
                     Text(
                         text = "Incoming requests",
@@ -248,40 +278,16 @@ private fun AdminRequestExpandedScreen(
                         fontWeight = FontWeight.Bold
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     IncomingCategoryList(
                         categories = uiState.categories,
                         onCategoryClick = { type ->
                             onAction(AdminRequestAction.OnCategoryClick(type))
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Card(
-                modifier = Modifier
-                    .weight(1.05f)
-                    .fillMaxHeight(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                CategoryRequestsPane(
-                    title = categoryTitle,
-                    requests = uiState.requestItems,
-                    showBack = false,
-                    onBackClick = {},
-                    onRequestClick = { requestId ->
-                        onAction(AdminRequestAction.OnRequestClick(requestId))
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -293,17 +299,52 @@ private fun AdminRequestExpandedScreen(
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                RequestDetailPane(
-                    request = uiState.selectedRequest,
-                    showBack = false,
-                    onBackClick = {},
-                    onAcceptClick = { onAction(AdminRequestAction.OnAcceptRequestClick) },
-                    onRejectClick = { onAction(AdminRequestAction.OnRejectRequestClick) },
-                    modifier = Modifier.fillMaxSize()
                 )
+            ) {
+                when {
+                    uiState.selectedType == null -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Select a category",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 18.sp
+                            )
+                        }
+                    }
+
+                    uiState.selectedRequest == null -> {
+                        CategoryRequestsPane(
+                            title = categoryTitle,
+                            requests = uiState.requestItems,
+                            showBack = false,
+                            onBackClick = {},
+                            onRequestClick = { requestId ->
+                                onAction(AdminRequestAction.OnRequestClick(requestId))
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
+                    else -> {
+                        RequestDetailPane(
+                            request = uiState.selectedRequest,
+                            showBack = true,
+                            onBackClick = {
+                                onAction(AdminRequestAction.OnBackFromDetailClick)
+                            },
+                            onAcceptClick = {
+                                onAction(AdminRequestAction.OnAcceptRequestClick)
+                            },
+                            onRejectClick = {
+                                onAction(AdminRequestAction.OnRejectRequestClick)
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
             }
         }
     }
@@ -316,12 +357,12 @@ private fun IncomingCategoryList(
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(bottom = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(28.dp)
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         items(categories, key = { it.type.name }) { category ->
-            CategorySection(
+            CategoryCard(
                 category = category,
                 onClick = { onCategoryClick(category.type) }
             )
@@ -330,46 +371,67 @@ private fun IncomingCategoryList(
 }
 
 @Composable
-private fun CategorySection(
+private fun CategoryCard(
     category: AdminRequestCategoryUi,
     onClick: () -> Unit
 ) {
-    val buttonColor = if (isSystemInDarkTheme()) {
+    val accentColor = if (isSystemInDarkTheme()) {
         BrandAccentDark
     } else {
         BrandAccentLight
     }
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Text(
-            text = if (category.count > 0) {
-                "${category.title} (${category.count})"
-            } else {
-                category.title
-            },
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium
-        )
-
-        Button(
-            onClick = onClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(58.dp),
-            shape = RoundedCornerShape(18.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = buttonColor,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
+        Column(
+            modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = category.buttonText,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
+                text = category.title,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = if (category.count > 0) {
+                    "Incoming (${category.count})"
+                } else {
+                    "Incoming"
+                },
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 16.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = onClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = accentColor,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Text(
+                    text = category.buttonText,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
+            }
         }
     }
 }
@@ -426,10 +488,11 @@ private fun CategoryRequestsPane(
             }
         } else {
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(0.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 items(requests, key = { it.id }) { request ->
-                    RequestRow(
+                    RequestCard(
                         request = request,
                         onClick = { onRequestClick(request.id) }
                     )
@@ -440,42 +503,61 @@ private fun CategoryRequestsPane(
 }
 
 @Composable
-private fun RequestRow(
+private fun RequestCard(
     request: AdminRequestItemUi,
     onClick: () -> Unit
 ) {
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            Text(
-                text = request.username,
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Box(
+                modifier = Modifier
+                    .height(56.dp)
+                    .width(56.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = request.username.firstOrNull()?.uppercase() ?: "R",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Text(
-                text = request.subtitle,
-                modifier = Modifier.widthIn(max = 180.dp),
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 18.sp
-            )
-        }
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = request.username,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-        )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = request.subtitle,
+                    color = BrandAccentLight,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
     }
 }
 
@@ -488,69 +570,80 @@ private fun RequestDetailPane(
     onRejectClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (showBack) {
-                BackButton(onClick = onBackClick)
-                Spacer(modifier = Modifier.width(12.dp))
-            }
+    val accentColor = if (isSystemInDarkTheme()) {
+        BrandAccentDark
+    } else {
+        BrandAccentLight
+    }
 
+    if (request == null) {
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             Text(
-                text = request?.username ?: "Request details",
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                text = "Select a request",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 18.sp
             )
         }
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (showBack) {
+                    BackButton(onClick = onBackClick)
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
 
-        Spacer(modifier = Modifier.height(20.dp))
+                Column {
+                    Text(
+                        text = request.username,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
 
-        if (request == null) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = request.subtitle,
+                        color = accentColor,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Select a request to view details.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 16.sp
+                    text = "AI summary",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = request.aiSummary,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 16.sp,
+                    lineHeight = 24.sp
                 )
             }
-        } else {
-            Text(
-                text = "AI summary",
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = request.aiSummary,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 16.sp,
-                lineHeight = 24.sp
-            )
 
             Spacer(modifier = Modifier.weight(1f))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
                     onClick = onAcceptClick,
@@ -562,7 +655,7 @@ private fun RequestDetailPane(
                     )
                 ) {
                     Text(
-                        text = "Accept Request",
+                        text = "Accept",
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -577,7 +670,7 @@ private fun RequestDetailPane(
                     )
                 ) {
                     Text(
-                        text = "Reject Request",
+                        text = "Reject",
                         fontWeight = FontWeight.Bold
                     )
                 }
