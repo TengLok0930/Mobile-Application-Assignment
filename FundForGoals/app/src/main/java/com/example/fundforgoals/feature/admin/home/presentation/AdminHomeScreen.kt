@@ -41,8 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fundforgoals.R
-import com.example.fundforgoals.app.navigation.AdminBottomBar
-import com.example.fundforgoals.app.navigation.AdminNavigationRail
+import com.example.fundforgoals.core.ui.components.navigation.AdminBottomBar
+import com.example.fundforgoals.core.ui.components.navigation.AdminNavigationRail
 import com.example.fundforgoals.core.ui.components.input.SearchBar
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight

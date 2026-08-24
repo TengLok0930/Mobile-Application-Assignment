@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,8 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fundforgoals.app.navigation.AdminBottomBar
-import com.example.fundforgoals.app.navigation.AdminNavigationRail
+import com.example.fundforgoals.core.ui.components.navigation.AdminBottomBar
+import com.example.fundforgoals.core.ui.components.navigation.AdminNavigationRail
 import com.example.fundforgoals.core.ui.components.navigation.BackButton
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
