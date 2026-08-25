@@ -16,6 +16,7 @@ data class UserUiState(
 )
 
 class UserViewModel : ViewModel() {
+
     private val repository = UserRepository()
 
     private val _uiState = MutableStateFlow(UserUiState())
@@ -27,37 +28,82 @@ class UserViewModel : ViewModel() {
 
     fun loadUsers() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isLoading = true,
-                error = null
-            )
-
-            try {
-                val users = repository.getUsers()
-
+            executeRequest {
+                repository.getUsers()
+            }?.let { users ->
                 _uiState.value = UserUiState(
                     isLoading = false,
                     users = users
                 )
-            } catch (exception: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = exception.message ?: "Unable to load users"
-                )
+            }
+        }
+    }
+
+    fun addUser(user: User) {
+        viewModelScope.launch {
+            executeAction {
+                repository.addUser(user)
+            }
+        }
+    }
+
+    fun modifyUser(user: User) {
+        viewModelScope.launch {
+            executeAction {
+                repository.modifyUser(user)
             }
         }
     }
 
     fun deleteUser(id: Int) {
         viewModelScope.launch {
-            try {
+            executeAction {
                 repository.deleteUser(id)
-                loadUsers()
-            } catch (exception: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = exception.message ?: "Unable to delete user"
-                )
             }
+        }
+    }
+
+    private suspend fun executeAction(
+        action: suspend () -> Unit
+    ) {
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            error = null
+        )
+
+        try {
+            action()
+
+            val users = repository.getUsers()
+
+            _uiState.value = UserUiState(
+                isLoading = false,
+                users = users
+            )
+        } catch (exception: Exception) {
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                error = exception.message ?: "Operation failed"
+            )
+        }
+    }
+
+    private suspend fun executeRequest(
+        request: suspend () -> List<User>
+    ): List<User>? {
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            error = null
+        )
+
+        return try {
+            request()
+        } catch (exception: Exception) {
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                error = exception.message ?: "Unable to load users"
+            )
+            null
         }
     }
 }
