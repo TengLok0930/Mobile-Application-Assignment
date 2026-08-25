@@ -1,4 +1,4 @@
-package com.example.fundforgoals.core.ui.components.navigation
+package com.example.fundforgoals.app.navigation
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
