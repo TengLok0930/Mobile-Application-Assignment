@@ -18,7 +18,7 @@ fun LoginRoute(
 
     LaunchedEffect(uiState.isLoginSuccessful) {
         if (uiState.isLoginSuccessful) {
-            onLoginSuccess(uiState.username)
+            onLoginSuccess(uiState.userType)
             viewModel.onLoginNavigated()
         }
     }

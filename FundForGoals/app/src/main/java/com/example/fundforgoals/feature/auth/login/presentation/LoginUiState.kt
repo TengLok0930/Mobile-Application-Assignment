@@ -3,6 +3,7 @@ package com.example.fundforgoals.feature.auth.login.presentation
 data class LoginUiState(
     val username: String = "",
     val password: String = "",
+    val userType: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isLoginSuccessful: Boolean = false

@@ -50,36 +50,42 @@ fun AppNavHost(
         modifier = modifier
     ) {
         composable(route = AppDestination.Login.route) {
+            val loginViewModel: LoginViewModel = viewModel()
+
             LoginRoute(
-                viewModel = viewModel<LoginViewModel>(),
+                viewModel = loginViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onForgotPasswordClick = {
+                    // Navigate to forgot password screen
                 },
                 onSignUpClick = {
                     navController.navigate(AppDestination.SignUpChoice.route) {
                         launchSingleTop = true
                     }
                 },
-                onLoginSuccess = { username ->
+                onLoginSuccess = { userType ->
                     val destination = when {
-                        username.trim().equals("admin", ignoreCase = true) -> {
+                        userType.trim().equals("admin", ignoreCase = true) -> {
                             AppDestination.AdminHome.route
                         }
-                        username.trim().equals("org", ignoreCase = true) -> {
+                        userType.trim().equals("organisation", ignoreCase = true) -> {
                             AppDestination.OrganisationHome.route
                         }
-                        else -> {
+                        userType.trim().equals("member", ignoreCase = true) -> {
                             AppDestination.MemberHome.route
                         }
+                        else -> ""
                     }
 
-                    navController.navigate(destination) {
-                        popUpTo(AppDestination.Login.route) {
-                            inclusive = true
+                    if (destination != "") {
+                        navController.navigate(destination) {
+                            popUpTo(AppDestination.Login.route) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
                         }
-                        launchSingleTop = true
                     }
                 }
             )
