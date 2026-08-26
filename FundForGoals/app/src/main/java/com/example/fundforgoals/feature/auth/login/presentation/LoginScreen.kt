@@ -41,7 +41,6 @@ import com.example.fundforgoals.supabase.viewModel.UserViewModel
 
 @Composable
 fun LoginScreen(
-    userViewModel: UserViewModel,
     uiState: LoginUiState,
     onAction: (LoginAction) -> Unit,
     modifier: Modifier = Modifier,
