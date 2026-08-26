@@ -1,8 +1,8 @@
 package com.example.fundforgoals.supabase.repository
 
+import com.example.fundforgoals.supabase.model.User
 import com.example.fundforgoals.supabase.model.CreateUserRequest
 import com.example.fundforgoals.supabase.model.UpdateUserRequest
-import com.example.fundforgoals.supabase.model.User
 import com.example.fundforgoals.supabase.supabase
 import io.github.jan.supabase.postgrest.from
 

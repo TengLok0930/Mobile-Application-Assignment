@@ -28,11 +28,16 @@ import com.example.fundforgoals.feature.auth.registration.organisation.presentat
 import com.example.fundforgoals.feature.auth.registration.signup_choice.presentation.SignUpChoiceRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatViewModel
+import com.example.fundforgoals.feature.member.contributions.presentation.MemberContributionsRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeViewModel
+import com.example.fundforgoals.feature.member.profile.presentation.MemberProfileRoute
+import com.example.fundforgoals.feature.member.profile.presentation.MemberProfileViewModel
 import com.example.fundforgoals.feature.member.project_detail.presentation.MemberProjectDetailRoute
 import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeRoute
 import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeViewModel
+import com.example.fundforgoals.feature.organisation.pastprojects.presentation.OrganisationPastProjectsRoute
+import com.example.fundforgoals.feature.organisation.profile.presentation.OrganisationProfileRoute
 
 @Composable
 fun AppNavHost(
@@ -65,19 +70,10 @@ fun AppNavHost(
                         userType.trim().equals("admin", ignoreCase = true) -> {
                             AppDestination.AdminHome.route
                         }
-<<<<<<< Updated upstream
-
-                        username.trim().equals("org", ignoreCase = true) -> {
-                            AppDestination.OrganisationHome.route
-                        }
-
-                        else -> {
-=======
                         userType.trim().equals("organisation", ignoreCase = true) -> {
                             AppDestination.OrganisationHome.route
                         }
                         userType.trim().equals("member", ignoreCase = true) -> {
->>>>>>> Stashed changes
                             AppDestination.MemberHome.route
                         }
                         else -> ""
@@ -153,9 +149,77 @@ fun AppNavHost(
                     )
                 },
                 onMessagesClick = {
-                    navController.navigate(AppDestination.Chat.route)
+                    navController.navigate(AppDestination.Chat.route) {
+                        launchSingleTop = true
+                    }
                 },
                 onProfileClick = {
+                    navController.navigate(AppDestination.MemberProfile.route) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(route = AppDestination.MemberProfile.route) {
+            MemberProfileRoute(
+                viewModel = viewModel<MemberProfileViewModel>(),
+                onLogoutClick = {
+                    navController.navigate(AppDestination.Login.route) {
+                        popUpTo(AppDestination.Login.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onMessagesClick = {
+                    navController.navigate(AppDestination.Chat.route) {
+                        launchSingleTop = true
+                        launchSingleTop = true
+                    }
+                },
+                onHomeClick = {
+                    navController.navigate(AppDestination.MemberHome.route) {
+                        popUpTo(AppDestination.MemberHome.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onViewContributionsClick = {
+                    navController.navigate(AppDestination.MemberContributions.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onChangePasswordClick = {
+                    // Add change password destination later
+                }
+            )
+        }
+
+        composable(route = AppDestination.MemberContributions.route) {
+            MemberContributionsRoute(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onMessagesClick = {
+                    navController.navigate(AppDestination.Chat.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onHomeClick = {
+                    navController.navigate(AppDestination.MemberHome.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onProfileClick = {
+                    navController.navigate(AppDestination.MemberProfile.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onContributionClick = { contributionId ->
+                },
+                onECertClick = { contributionId ->
                 }
             )
         }
@@ -169,9 +233,85 @@ fun AppNavHost(
                     )
                 },
                 onMessagesClick = {
-                    navController.navigate(AppDestination.Chat.route)
+                    navController.navigate(AppDestination.Chat.route) {
+                        launchSingleTop = true
+                    }
                 },
                 onProfileClick = {
+                    navController.navigate(AppDestination.OrganisationProfile.route) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(route = AppDestination.OrganisationProfile.route) {
+            OrganisationProfileRoute(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onLogoutClick = {
+                    navController.navigate(AppDestination.Login.route) {
+                        popUpTo(AppDestination.Login.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onMessagesClick = {
+                    navController.navigate(AppDestination.Chat.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onHomeClick = {
+                    navController.navigate(AppDestination.OrganisationHome.route) {
+                        popUpTo(AppDestination.OrganisationHome.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onViewPastProjectsClick = {
+                    navController.navigate(AppDestination.OrganisationPastProjects.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onViewContributionsClick = {
+                    navController.navigate(AppDestination.MemberContributions.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onChangePasswordClick = {
+                    // Add change password screen later
+                }
+            )
+        }
+
+        composable(route = AppDestination.OrganisationPastProjects.route) {
+            OrganisationPastProjectsRoute(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onMessagesClick = {
+                    navController.navigate(AppDestination.Chat.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onHomeClick = {
+                    navController.navigate(AppDestination.OrganisationHome.route) {
+                        popUpTo(AppDestination.OrganisationHome.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onProfileClick = {
+                    navController.navigate(AppDestination.OrganisationProfile.route) {
+                        popUpTo(AppDestination.OrganisationProfile.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -217,7 +357,9 @@ fun AppNavHost(
                     }
                 },
                 onViewChatroomClick = {
-                    navController.navigate(AppDestination.Chat.route)
+                    navController.navigate(AppDestination.Chat.route) {
+                        launchSingleTop = true
+                    }
                 },
                 viewModel = viewModel<AdminMonitorDetailViewModel>()
             )
@@ -265,9 +407,11 @@ fun AppNavHost(
 
         composable(route = AppDestination.AdminProfile.route) {
             AdminProfileRoute(
-                viewModel = viewModel<AdminProfileViewModel>(),
-                onRequestsClick = {
-                    navController.navigate(AppDestination.AdminRequest.route) {
+                onLogoutClick = {
+                    navController.navigate(AppDestination.Login.route) {
+                        popUpTo(AppDestination.Login.route) {
+                            inclusive = true
+                        }
                         launchSingleTop = true
                     }
                 },
@@ -279,15 +423,16 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onChangePasswordClick = {
-                },
-                onLogoutClick = {
-                    navController.navigate(AppDestination.Login.route) {
-                        popUpTo(AppDestination.Login.route) {
-                            inclusive = true
+                onRequestsClick = {
+                    navController.navigate(AppDestination.AdminRequest.route) {
+                        popUpTo(AppDestination.AdminRequest.route) {
+                            inclusive = false
                         }
                         launchSingleTop = true
                     }
+                },
+                onChangePasswordClick = {
+                    // Add change password navigation later
                 }
             )
         }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
@@ -19,12 +20,12 @@ import com.example.fundforgoals.R
 
 @Composable
 fun AppNavigationRail(
-    modifier: Modifier = Modifier,
     selectedItem: String,
     onMessagesClick: () -> Unit,
     onHomeClick: () -> Unit,
     onProfileClick: () -> Unit,
-    showLabels: Boolean = false
+    showLabels: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     NavigationRail(
         modifier = modifier.fillMaxHeight(),
