@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import com.example.fundforgoals.core.ui.theme.FundForGoalsTheme
+import com.example.fundforgoals.supabase.viewModel.UserViewModel
 
 @Composable
 fun LoginScreen(
@@ -45,6 +46,7 @@ fun LoginScreen(
     modifier: Modifier = Modifier,
     isCompact: Boolean = true
 ) {
+
     if (isCompact) {
         LoginCompactScreen(
             uiState = uiState,
