@@ -1,12 +1,14 @@
 package com.example.fundforgoals.feature.chat.presentation
 
 import androidx.lifecycle.ViewModel
+import com.example.fundforgoals.supabase.repository.ChatRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class ChatViewModel : ViewModel() {
+    val chatRepository = ChatRepository()
 
     private val allConversations = listOf(
         ConversationUi(

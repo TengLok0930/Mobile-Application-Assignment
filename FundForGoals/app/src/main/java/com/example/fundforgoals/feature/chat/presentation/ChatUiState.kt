@@ -17,6 +17,7 @@ data class ChatMessageUi(
 data class ChatUiState(
     val projectTitle: String = "Project 1",
     val activeOrganisationName: String = "Organisation 1",
+    val currentUser: String = "",
     val searchQuery: String = "",
     val selectedConversationId: String? = null,
     val input: String = "",

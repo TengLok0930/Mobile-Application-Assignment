@@ -59,4 +59,16 @@ class UserRepository {
                 }
             }
     }
+
+    suspend fun getUserByUsername(username: String): User? {
+        return supabase
+            .from("user")
+            .select {
+                filter {
+                    eq("name", username)
+                }
+            }
+            .decodeList<User>()
+            .firstOrNull()
+    }
 }
