@@ -1,4 +1,4 @@
-package com.example.fundforgoals.feature.admin.profile.presentation
+package com.example.fundforgoals.feature.organisation.profile.presentation
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -24,6 +24,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -33,26 +35,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fundforgoals.app.navigation.AdminBottomBar
-import com.example.fundforgoals.app.navigation.AdminNavigationRail
+import com.example.fundforgoals.R
+import com.example.fundforgoals.app.navigation.AppBottomBar
+import com.example.fundforgoals.app.navigation.AppNavigationRail
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import com.example.fundforgoals.core.util.ContentType
 
 @Composable
-fun AdminProfileScreen(
-    uiState: AdminProfileUiState,
+fun OrganisationProfileScreen(
+    uiState: OrganisationProfileUiState,
     contentType: ContentType,
-    onAction: (AdminProfileAction) -> Unit,
+    onAction: (OrganisationProfileAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (contentType) {
         ContentType.LIST_ONLY -> {
-            AdminProfileCompactScreen(
+            OrganisationProfileCompactScreen(
                 uiState = uiState,
                 onAction = onAction,
                 modifier = modifier
@@ -60,7 +64,7 @@ fun AdminProfileScreen(
         }
 
         ContentType.LIST_AND_DETAIL -> {
-            AdminProfileExpandedScreen(
+            OrganisationProfileExpandedScreen(
                 uiState = uiState,
                 onAction = onAction,
                 modifier = modifier
@@ -70,9 +74,9 @@ fun AdminProfileScreen(
 }
 
 @Composable
-private fun AdminProfileCompactScreen(
-    uiState: AdminProfileUiState,
-    onAction: (AdminProfileAction) -> Unit,
+private fun OrganisationProfileCompactScreen(
+    uiState: OrganisationProfileUiState,
+    onAction: (OrganisationProfileAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -82,11 +86,11 @@ private fun AdminProfileCompactScreen(
             .fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            AdminBottomBar(
+            AppBottomBar(
                 selectedItem = "profile",
-                onRequestsClick = { onAction(AdminProfileAction.OnRequestsClick) },
-                onHomeClick = { onAction(AdminProfileAction.OnHomeClick) },
-                onProfileClick = { onAction(AdminProfileAction.OnProfileClick) }
+                onMessagesClick = { onAction(OrganisationProfileAction.OnMessagesClick) },
+                onHomeClick = { onAction(OrganisationProfileAction.OnHomeClick) },
+                onProfileClick = { onAction(OrganisationProfileAction.OnProfileClick) }
             )
         }
     ) { innerPadding ->
@@ -96,9 +100,10 @@ private fun AdminProfileCompactScreen(
                 .padding(innerPadding),
             color = MaterialTheme.colorScheme.background
         ) {
-            AdminProfileContent(
+            OrganisationProfileContent(
                 uiState = uiState,
                 onAction = onAction,
+                showBackButton = true,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 24.dp, vertical = 16.dp)
@@ -108,9 +113,9 @@ private fun AdminProfileCompactScreen(
 }
 
 @Composable
-private fun AdminProfileExpandedScreen(
-    uiState: AdminProfileUiState,
-    onAction: (AdminProfileAction) -> Unit,
+private fun OrganisationProfileExpandedScreen(
+    uiState: OrganisationProfileUiState,
+    onAction: (OrganisationProfileAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -123,11 +128,11 @@ private fun AdminProfileExpandedScreen(
                 .statusBarsPadding()
                 .padding(20.dp)
         ) {
-            AdminNavigationRail(
+            AppNavigationRail(
                 selectedItem = "profile",
-                onRequestsClick = { onAction(AdminProfileAction.OnRequestsClick) },
-                onHomeClick = { onAction(AdminProfileAction.OnHomeClick) },
-                onProfileClick = { onAction(AdminProfileAction.OnProfileClick) }
+                onMessagesClick = { onAction(OrganisationProfileAction.OnMessagesClick) },
+                onHomeClick = { onAction(OrganisationProfileAction.OnHomeClick) },
+                onProfileClick = { onAction(OrganisationProfileAction.OnProfileClick) }
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -141,9 +146,10 @@ private fun AdminProfileExpandedScreen(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
-                AdminProfileContent(
+                OrganisationProfileContent(
                     uiState = uiState,
                     onAction = onAction,
+                    showBackButton = true,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(24.dp)
@@ -154,16 +160,13 @@ private fun AdminProfileExpandedScreen(
 }
 
 @Composable
-private fun AdminProfileContent(
-    uiState: AdminProfileUiState,
-    onAction: (AdminProfileAction) -> Unit,
+private fun OrganisationProfileContent(
+    uiState: OrganisationProfileUiState,
+    onAction: (OrganisationProfileAction) -> Unit,
+    showBackButton: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val accentColor = if (isSystemInDarkTheme()) {
-        BrandAccentDark
-    } else {
-        BrandAccentLight
-    }
+    val accentColor = if (isSystemInDarkTheme()) BrandAccentDark else BrandAccentLight
 
     when {
         uiState.isLoading -> {
@@ -171,10 +174,7 @@ private fun AdminProfileContent(
                 modifier = modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Loading...",
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Text("Loading...")
             }
         }
 
@@ -199,10 +199,25 @@ private fun AdminProfileContent(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    if (showBackButton) {
+                        IconButton(
+                            onClick = { onAction(OrganisationProfileAction.OnBackClick) }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.arrow_back_40px),
+                                contentDescription = "Back"
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
                     TextButton(
-                        onClick = { onAction(AdminProfileAction.OnLogoutClick) }
+                        onClick = { onAction(OrganisationProfileAction.OnLogoutClick) }
                     ) {
                         Text(
                             text = "Logout",
@@ -215,30 +230,48 @@ private fun AdminProfileContent(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                AdminProfileHeader(
-                    adminName = uiState.adminName
+                OrganisationProfileHeader(
+                    organisationName = uiState.organisationName
                 )
 
                 Spacer(modifier = Modifier.height(48.dp))
 
-                AdminProfileSettingRow(
-                    title = "Appearance",
-                    value = uiState.appearanceLabel,
-                    onClick = { onAction(AdminProfileAction.OnAppearanceClick) }
+                OrganisationLinkRow(
+                    title = "Past Projects",
+                    actionText = "View >>",
+                    accentColor = accentColor,
+                    onClick = { onAction(OrganisationProfileAction.OnViewPastProjectsClick) }
                 )
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                AdminProfileSettingRow(
+                OrganisationLinkRow(
+                    title = "Contributions",
+                    actionText = "View >>",
+                    accentColor = accentColor,
+                    onClick = { onAction(OrganisationProfileAction.OnViewContributionsClick) }
+                )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                OrganisationSettingRow(
+                    title = "Appearance",
+                    value = uiState.appearanceLabel,
+                    onClick = { onAction(OrganisationProfileAction.OnAppearanceClick) }
+                )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                OrganisationSettingRow(
                     title = "Notifications",
                     value = uiState.notificationsLabel,
-                    onClick = { onAction(AdminProfileAction.OnNotificationsClick) }
+                    onClick = { onAction(OrganisationProfileAction.OnNotificationsClick) }
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
 
                 TextButton(
-                    onClick = { onAction(AdminProfileAction.OnChangePasswordClick) },
+                    onClick = { onAction(OrganisationProfileAction.OnChangePasswordClick) },
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
                     Text(
@@ -249,14 +282,16 @@ private fun AdminProfileContent(
                         textDecoration = TextDecoration.Underline
                     )
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
 
 @Composable
-private fun AdminProfileHeader(
-    adminName: String
+private fun OrganisationProfileHeader(
+    organisationName: String
 ) {
     Box(
         modifier = Modifier.fillMaxWidth(),
@@ -277,7 +312,7 @@ private fun AdminProfileHeader(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = adminName.firstOrNull()?.uppercase() ?: "A",
+                    text = organisationName.firstOrNull()?.uppercase() ?: "O",
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 56.sp,
                     fontWeight = FontWeight.Bold
@@ -287,7 +322,7 @@ private fun AdminProfileHeader(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = adminName,
+                text = organisationName,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Medium
@@ -297,7 +332,37 @@ private fun AdminProfileHeader(
 }
 
 @Composable
-private fun AdminProfileSettingRow(
+private fun OrganisationLinkRow(
+    title: String,
+    actionText: String,
+    accentColor: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Medium
+        )
+
+        TextButton(onClick = onClick) {
+            Text(
+                text = actionText,
+                color = accentColor,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+private fun OrganisationSettingRow(
     title: String,
     value: String,
     onClick: () -> Unit
