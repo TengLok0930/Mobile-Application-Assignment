@@ -7,13 +7,15 @@ import kotlinx.serialization.Serializable
 data class Chatroom (
     val id: Int? = null,
     val member1: Int,
-    val member2: Int
+    val member2: Int,
+    val project: Int
 )
 
 @Serializable
 data class CreateChatroomRequest (
     val member1: Int,
-    val member2: Int
+    val member2: Int,
+    val project: Int
 )
 
 @Serializable

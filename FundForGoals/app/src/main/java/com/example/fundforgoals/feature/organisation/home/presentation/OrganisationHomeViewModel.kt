@@ -1,57 +1,95 @@
 package com.example.fundforgoals.feature.organisation.home.presentation
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.fundforgoals.supabase.model.Project
+import com.example.fundforgoals.supabase.repository.ProjectRepository
+import com.example.fundforgoals.supabase.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class OrganisationHomeViewModel : ViewModel() {
-    private val allProjects = listOf(
-        ProjectUi(
-            id = "1",
-            title = "Project 1",
-            organisation = "Organisation 1",
-            description = "Description 1",
-            progress = 0.45f,
-            contributionAmount = 500
-        ),
-        ProjectUi(
-            id = "2",
-            title = "Project 2",
-            organisation = "Organisation 1",
-            description = "Description 2",
-            progress = 0.70f,
-            contributionAmount = 850
-        ),
-        ProjectUi(
-            id = "3",
-            title = "Project 3",
-            organisation = "Organisation 1",
-            description = "Description 3",
-            progress = 0.30f,
-            contributionAmount = 300
-        )
-    )
+class OrganisationHomeViewModel(
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
+    private val currentUser: String =
+        checkNotNull(savedStateHandle["currentUser"])
 
-    private val loginOrganisation = "Organisation 1"
+    private val projectRepository = ProjectRepository()
+    private val userRepository = UserRepository()
+
+    private var allProjects: List<Project> = emptyList()
+    private var creatorNames: Map<Int, String> = emptyMap()
 
     private val _uiState = MutableStateFlow(
-        OrganisationHomeUiState(
-            loginOrganisation = loginOrganisation,
-            projects = allProjects,
-            selectedProjectId = allProjects.firstOrNull()?.id
-        )
+        OrganisationHomeUiState(currentUser = currentUser)
     )
     val uiState: StateFlow<OrganisationHomeUiState> = _uiState.asStateFlow()
+
+    init {
+        loadProjects()
+    }
+
+    private fun loadProjects() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = null
+                )
+            }
+
+            try {
+                val user = userRepository.getUserByUsername(currentUser)
+
+                allProjects = user?.id?.let { userId ->
+                    projectRepository.getProjectsByUser(userId)
+                } ?: emptyList()
+
+                val creatorIds = allProjects
+                    .map { it.createdBy }
+                    .distinct()
+
+                creatorNames = creatorIds
+                    .mapNotNull { creatorId ->
+                        val creator = userRepository.getUserById(creatorId)
+                        creator?.name?.let { creatorName ->
+                            creatorId to creatorName
+                        }
+                    }
+                    .toMap()
+
+                _uiState.update {
+                    it.copy(
+                        loginOrganisation = user?.name ?: currentUser,
+                        projects = allProjects,
+                        creatorNames = creatorNames,
+                        selectedProjectId = allProjects.firstOrNull()?.id,
+                        isLoading = false
+                    )
+                }
+            } catch (exception: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = exception.message ?: "Failed to load projects"
+                    )
+                }
+            }
+        }
+    }
 
     fun onAction(action: OrganisationHomeAction) {
         when (action) {
             is OrganisationHomeAction.OnSearchQueryChanged -> {
                 _uiState.update { currentState ->
-                    val filteredProjects = allProjects.filter {
-                        it.title.contains(action.value, ignoreCase = true) ||
-                                it.organisation.contains(action.value, ignoreCase = true)
+                    val filteredProjects = allProjects.filter { project ->
+                        val creatorName = creatorNames[project.createdBy] ?: ""
+                        project.title.contains(action.value, ignoreCase = true) ||
+                                creatorName.contains(action.value, ignoreCase = true)
                     }
 
                     val selectedStillExists = filteredProjects.any {
@@ -64,7 +102,7 @@ class OrganisationHomeViewModel : ViewModel() {
                         selectedProjectId = when {
                             filteredProjects.isEmpty() -> null
                             selectedStillExists -> currentState.selectedProjectId
-                            else -> filteredProjects.first().id
+                            else -> filteredProjects.firstOrNull()?.id
                         }
                     )
                 }
@@ -82,14 +120,7 @@ class OrganisationHomeViewModel : ViewModel() {
             OrganisationHomeAction.OnHomeClick -> Unit
             OrganisationHomeAction.OnProfileClick -> Unit
 
-            OrganisationHomeAction.Refresh -> {
-                _uiState.update {
-                    it.copy(
-                        projects = allProjects,
-                        selectedProjectId = allProjects.firstOrNull()?.id
-                    )
-                }
-            }
+            OrganisationHomeAction.Refresh -> loadProjects()
         }
     }
 }

@@ -71,4 +71,16 @@ class UserRepository {
             .decodeList<User>()
             .firstOrNull()
     }
+
+    suspend fun getUserById(id: Int): User? {
+        return supabase
+            .from("user")
+            .select {
+                filter {
+                    eq("id", id)
+                }
+            }
+            .decodeList<User>()
+            .firstOrNull()
+    }
 }
