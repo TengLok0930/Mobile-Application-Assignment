@@ -11,7 +11,7 @@ fun OrganisationHomeRoute(
     viewModel: OrganisationHomeViewModel,
     onProjectSelected: (Int) -> Unit,
     onViewProjectClick: () -> Unit,
-    onMessagesClick: () -> Unit,
+    onMessagesClick: (currentUser: String) -> Unit,
     onProfileClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -33,7 +33,7 @@ fun OrganisationHomeRoute(
 
                 OrganisationHomeAction.OnViewProjectClick -> onViewProjectClick()
                 OrganisationHomeAction.OnNewProjectClick -> viewModel.onAction(action)
-                OrganisationHomeAction.OnMessagesClick -> onMessagesClick()
+                OrganisationHomeAction.OnMessagesClick -> onMessagesClick(uiState.currentUser)
                 OrganisationHomeAction.OnProfileClick -> onProfileClick()
                 is OrganisationHomeAction.OnSearchQueryChanged -> viewModel.onAction(action)
                 OrganisationHomeAction.OnHomeClick -> viewModel.onAction(action)

@@ -9,7 +9,7 @@ import com.example.fundforgoals.core.util.rememberContentType
 fun MemberProfileRoute(
     viewModel: MemberProfileViewModel,
     onLogoutClick: () -> Unit,
-    onMessagesClick: () -> Unit,
+    onMessagesClick: (currentUser: String) -> Unit,
     onHomeClick: () -> Unit,
     onViewContributionsClick: () -> Unit,
     onChangePasswordClick: () -> Unit
@@ -23,7 +23,7 @@ fun MemberProfileRoute(
         onAction = { action ->
             when (action) {
                 MemberProfileAction.OnLogoutClick -> onLogoutClick()
-                MemberProfileAction.OnMessagesClick -> onMessagesClick()
+                MemberProfileAction.OnMessagesClick -> onMessagesClick(uiState.memberName)
                 MemberProfileAction.OnHomeClick -> onHomeClick()
                 MemberProfileAction.OnViewContributionsClick -> onViewContributionsClick()
                 MemberProfileAction.OnChangePasswordClick -> onChangePasswordClick()

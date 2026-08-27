@@ -11,7 +11,7 @@ fun ViewProjectRoute(
     viewModel: ViewProjectViewModel,
     onProjectSelected: (Int) -> Unit,
     onHomeClick: () -> Unit,
-    onMessagesClick: () -> Unit,
+    onMessagesClick: (currentUser: String) -> Unit,
     onProfileClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -31,7 +31,7 @@ fun ViewProjectRoute(
                     }
                 }
 
-                ViewProjectAction.OnMessagesClick -> onMessagesClick()
+                ViewProjectAction.OnMessagesClick -> onMessagesClick(uiState.currentUser)
                 ViewProjectAction.OnProfileClick -> onProfileClick()
                 ViewProjectAction.OnHomeClick -> onHomeClick()
                 is ViewProjectAction.OnSearchQueryChanged -> viewModel.onAction(action)

@@ -23,7 +23,11 @@ sealed class AppDestination(val route: String) {
     data object AdminHome : AppDestination("admin_home")
     data object AdminRequest : AppDestination("admin_request")
     data object AdminProfile : AppDestination("admin_profile")
-    data object Chat : AppDestination("chat")
+    data object Chat : AppDestination("chat/{currentUser}") {
+        fun createRoute(currentUser: String): String {
+            return "chat/$currentUser"
+        }
+    }
 
     data object MemberProjectDetail :
         AppDestination("member_project_detail/{projectId}") {

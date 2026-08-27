@@ -56,4 +56,48 @@ class ChatroomRepository {
                 }
             }
     }
+
+    suspend fun getChatroomByUserId(id: Int): List<Chatroom> {
+        return supabase
+            .from("chatroom")
+            .select {
+                filter {
+                    or {
+                        eq("member1", id)
+                        eq("member2", id)
+                    }
+                }
+            }
+            .decodeList<Chatroom>()
+    }
+
+    suspend fun getChatroomById(id: Int): Chatroom? {
+        return supabase
+            .from("chatroom")
+            .select {
+                filter {
+                    eq("id", id)
+                }
+            }
+            .decodeList<Chatroom>()
+            .firstOrNull()
+    }
+
+    suspend fun getChatroomBetweenMembers(
+        member1: Int,
+        member2: Int,
+        projectId: Int
+    ): Chatroom? {
+        return supabase
+            .from("chatroom")
+            .select {
+                filter {
+                    eq("member1", member1)
+                    eq("member2", member2)
+                    eq("project", projectId)
+                }
+            }
+            .decodeList<Chatroom>()
+            .firstOrNull()
+    }
 }
