@@ -44,7 +44,6 @@ class LoginViewModel : ViewModel() {
 
             LoginAction.OnForgotPasswordClick -> Unit
             LoginAction.OnSignUpClick -> Unit
-            LoginAction.OnBackClick -> Unit
         }
     }
 

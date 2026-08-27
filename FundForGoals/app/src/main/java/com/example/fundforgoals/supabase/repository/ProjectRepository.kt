@@ -3,6 +3,7 @@ package com.example.fundforgoals.supabase.repository
 import com.example.fundforgoals.supabase.model.CreateProjectRequest
 import com.example.fundforgoals.supabase.model.Project
 import com.example.fundforgoals.supabase.model.UpdateProjectRequest
+import com.example.fundforgoals.supabase.model.User
 import com.example.fundforgoals.supabase.supabase
 import io.github.jan.supabase.postgrest.from
 
@@ -22,7 +23,8 @@ class ProjectRepository {
             desc = project.desc,
             createdBy = project.createdBy,
             fundGoal = project.fundGoal,
-            currentFund = project.currentFund
+            currentFund = project.currentFund,
+            avatarUrl = project.avatarUrl
         )
 
         supabase
@@ -38,7 +40,8 @@ class ProjectRepository {
             title = project.title,
             desc = project.desc,
             fundGoal = project.fundGoal,
-            currentFund = project.currentFund
+            currentFund = project.currentFund,
+            avatarUrl = project.avatarUrl
         )
 
         supabase
@@ -58,5 +61,16 @@ class ProjectRepository {
                     eq("id", id)
                 }
             }
+    }
+
+    suspend fun getProjectsByUser(userId: Int): List<Project> {
+        return supabase
+            .from("project")
+            .select {
+                filter {
+                    eq("created_by", userId)
+                }
+            }
+            .decodeList<Project>()
     }
 }

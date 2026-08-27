@@ -19,7 +19,8 @@ class ChatroomRepository {
     suspend fun addChatroom(chatroom: Chatroom) {
         val request = CreateChatroomRequest(
             member1 = chatroom.member1,
-            member2 = chatroom.member2
+            member2 = chatroom.member2,
+            project = chatroom.project
         )
 
         supabase
