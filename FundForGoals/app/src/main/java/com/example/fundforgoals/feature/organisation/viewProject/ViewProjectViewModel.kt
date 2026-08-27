@@ -1,4 +1,4 @@
-package com.example.fundforgoals.feature.member.home.presentation
+package com.example.fundforgoals.feature.organisation.viewProject
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MemberHomeViewModel(
+class ViewProjectViewModel(
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+): ViewModel() {
 
     private val currentUser: String =
         checkNotNull(savedStateHandle["currentUser"])
@@ -26,12 +26,12 @@ class MemberHomeViewModel(
     private var creatorNames: Map<Int, String> = emptyMap()
 
     private val _uiState = MutableStateFlow(
-        MemberHomeUiState(
+        ViewProjectUiState(
             currentUser = currentUser
         )
     )
 
-    val uiState: StateFlow<MemberHomeUiState> =
+    val uiState: StateFlow<ViewProjectUiState> =
         _uiState.asStateFlow()
 
     init {
@@ -84,13 +84,13 @@ class MemberHomeViewModel(
         }
     }
 
-    fun onAction(action: MemberHomeAction) {
+    fun onAction(action: ViewProjectAction) {
         when (action) {
-            is MemberHomeAction.OnSearchQueryChanged -> {
+            is ViewProjectAction.OnSearchQueryChanged -> {
                 searchProjects(action.value)
             }
 
-            is MemberHomeAction.OnProjectClick -> {
+            is ViewProjectAction.OnProjectClick -> {
                 _uiState.update {
                     it.copy(
                         selectedProjectId = action.projectId
@@ -98,13 +98,13 @@ class MemberHomeViewModel(
                 }
             }
 
-            MemberHomeAction.OnMessagesClick -> Unit
+            ViewProjectAction.OnMessagesClick -> Unit
 
-            MemberHomeAction.OnHomeClick -> Unit
+            ViewProjectAction.OnHomeClick -> Unit
 
-            MemberHomeAction.OnProfileClick -> Unit
+            ViewProjectAction.OnProfileClick -> Unit
 
-            MemberHomeAction.Refresh -> {
+            ViewProjectAction.Refresh -> {
                 loadProjects()
             }
         }

@@ -20,7 +20,10 @@ data class Project(
     val fundGoal: Double,
 
     @SerialName("current_fund")
-    val currentFund: Double
+    val currentFund: Double,
+
+    @SerialName("avatar_url")
+    val avatarUrl: String
 )
 
 @Serializable
@@ -35,7 +38,10 @@ data class CreateProjectRequest(
     val fundGoal: Double,
 
     @SerialName("current_fund")
-    val currentFund: Double
+    val currentFund: Double,
+
+    @SerialName("avatar_url")
+    val avatarUrl: String
 )
 
 @Serializable
@@ -47,5 +53,8 @@ data class UpdateProjectRequest(
     val fundGoal: Double,
 
     @SerialName("current_fund")
-    val currentFund: Double
+    val currentFund: Double,
+
+    @SerialName("avatar_url")
+    val avatarUrl: String
 )

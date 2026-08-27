@@ -1,8 +1,8 @@
-package com.example.fundforgoals.feature.member.home.presentation
+package com.example.fundforgoals.feature.organisation.viewProject
 
 import com.example.fundforgoals.supabase.model.Project
 
-data class MemberHomeUiState(
+data class ViewProjectUiState(
     val currentUser: String,
     val searchQuery: String = "",
     val selectedFilter: String = "Newest",

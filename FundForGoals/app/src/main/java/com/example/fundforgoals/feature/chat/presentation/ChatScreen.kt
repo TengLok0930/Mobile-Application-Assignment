@@ -54,11 +54,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 @Composable
 fun ChatScreen(
     uiState: ChatUiState,
-    onAction: (ChatAction) -> Unit,
+    onAction: (ChatScreenAction) -> Unit,
     modifier: Modifier = Modifier,
     showConversationList: Boolean = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 ) {
-    val listState = rememberLazyListState()
+    /*val listState = rememberLazyListState()
     val accentColor = if (isSystemInDarkTheme()) {
         BrandAccentDark
     } else {
@@ -88,7 +88,7 @@ fun ChatScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = { onAction(ChatAction.OnBackClick) }
+                    onClick = { onAction(ChatScreenAction.OnBackClick) }
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.arrow_back_40px),
@@ -107,7 +107,7 @@ fun ChatScreen(
                 )
 
                 IconButton(
-                    onClick = { onAction(ChatAction.OnSearchClick) },
+                    onClick = { onAction(ChatScreenAction.OnSearchClick) },
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -139,10 +139,10 @@ fun ChatScreen(
                             selectedConversationId = uiState.selectedConversationId,
                             conversations = uiState.conversations,
                             onSearchChanged = {
-                                onAction(ChatAction.OnSearchQueryChanged(it))
+                                onAction(ChatScreenAction.OnSearchQueryChanged(it))
                             },
                             onConversationSelected = { id ->
-                                onAction(ChatAction.OnConversationSelected(id))
+                                onAction(ChatScreenAction.OnConversationSelected(id))
                             }
                         )
                     }
@@ -225,7 +225,7 @@ fun ChatScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(
-                                onClick = { onAction(ChatAction.OnAddClick) },
+                                onClick = { onAction(ChatScreenAction.OnAddClick) },
                                 colors = IconButtonDefaults.iconButtonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -240,7 +240,7 @@ fun ChatScreen(
                             OutlinedTextField(
                                 value = uiState.input,
                                 onValueChange = {
-                                    onAction(ChatAction.OnInputChanged(it))
+                                    onAction(ChatScreenAction.OnInputChanged(it))
                                 },
                                 modifier = Modifier
                                     .weight(1f)
@@ -259,7 +259,7 @@ fun ChatScreen(
                             )
 
                             IconButton(
-                                onClick = { onAction(ChatAction.OnSendClick) },
+                                onClick = { onAction(ChatScreenAction.OnSendClick) },
                                 colors = IconButtonDefaults.iconButtonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -428,10 +428,10 @@ private fun ConversationItem(
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
+    }*/
 }
 
-@Composable
+/*@Composable
 private fun MessageBubble(message: ChatMessageUi) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -500,4 +500,4 @@ private fun ChatBox(
             )
         }
     }
-}
+}*/

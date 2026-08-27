@@ -14,7 +14,6 @@ import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeViewMod
 import com.example.fundforgoals.feature.admin.monitor_detail.presentation.AdminMonitorDetailRoute
 import com.example.fundforgoals.feature.admin.monitor_detail.presentation.AdminMonitorDetailViewModel
 import com.example.fundforgoals.feature.admin.profile.presentation.AdminProfileRoute
-import com.example.fundforgoals.feature.admin.profile.presentation.AdminProfileViewModel
 import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestRoute
 import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestViewModel
 import com.example.fundforgoals.feature.admin.warning_detail.presentation.AdminWarningDetailRoute
@@ -27,7 +26,7 @@ import com.example.fundforgoals.feature.auth.registration.organisation.presentat
 import com.example.fundforgoals.feature.auth.registration.organisation.presentation.OrganisationRegViewModel
 import com.example.fundforgoals.feature.auth.registration.signup_choice.presentation.SignUpChoiceRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatRoute
-import com.example.fundforgoals.feature.chat.presentation.ChatViewModel
+import com.example.fundforgoals.feature.chat.presentation.ChatScreenViewModel
 import com.example.fundforgoals.feature.member.contributions.presentation.MemberContributionsRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeViewModel
@@ -38,6 +37,8 @@ import com.example.fundforgoals.feature.organisation.home.presentation.Organisat
 import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeViewModel
 import com.example.fundforgoals.feature.organisation.pastprojects.presentation.OrganisationPastProjectsRoute
 import com.example.fundforgoals.feature.organisation.profile.presentation.OrganisationProfileRoute
+import com.example.fundforgoals.feature.organisation.viewProject.ViewProjectRoute
+import com.example.fundforgoals.feature.organisation.viewProject.ViewProjectViewModel
 
 @Composable
 fun AppNavHost(
@@ -54,9 +55,6 @@ fun AppNavHost(
 
             LoginRoute(
                 viewModel = loginViewModel,
-                onBackClick = {
-                    navController.popBackStack()
-                },
                 onForgotPasswordClick = {
                     // Navigate to forgot password screen
                 },
@@ -65,17 +63,14 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onLoginSuccess = { userType ->
+                onLoginSuccess = { username, userType ->
                     val destination = when {
-                        userType.trim().equals("admin", ignoreCase = true) -> {
+                        userType.trim().equals("admin", ignoreCase = true) ->
                             AppDestination.AdminHome.route
-                        }
-                        userType.trim().equals("organisation", ignoreCase = true) -> {
-                            AppDestination.OrganisationHome.route
-                        }
-                        userType.trim().equals("member", ignoreCase = true) -> {
-                            AppDestination.MemberHome.route
-                        }
+                        userType.trim().equals("organisation", ignoreCase = true) ->
+                            AppDestination.OrganisationHome.createRoute(username)
+                        userType.trim().equals("member", ignoreCase = true) ->
+                            AppDestination.MemberHome.createRoute(username)
                         else -> ""
                     }
 
@@ -140,7 +135,15 @@ fun AppNavHost(
             )
         }
 
-        composable(route = AppDestination.MemberHome.route) {
+        composable(route = AppDestination.MemberHome.route,
+            arguments = listOf(
+                navArgument("currentUser") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val currentUser = backStackEntry.arguments?.getString("currentUser") ?: return@composable
+
             MemberHomeRoute(
                 viewModel = viewModel<MemberHomeViewModel>(),
                 onProjectSelected = { projectId ->
@@ -224,13 +227,62 @@ fun AppNavHost(
             )
         }
 
-        composable(route = AppDestination.OrganisationHome.route) {
+        composable(route = AppDestination.OrganisationHome.route,
+            arguments = listOf(
+                navArgument("currentUser") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentUser = backStackEntry.arguments?.getString("currentUser") ?: return@composable
             OrganisationHomeRoute(
                 viewModel = viewModel<OrganisationHomeViewModel>(),
                 onProjectSelected = { projectId ->
                     navController.navigate(
                         AppDestination.OrganisationProjectDetail.createRoute(projectId)
                     )
+                },
+                onViewProjectClick = {
+                    navController.navigate(
+                        AppDestination.OrganisationViewProject.createRoute(currentUser)
+                    ) {
+                        launchSingleTop = true
+                    }
+                },
+                onMessagesClick = {
+                    navController.navigate(AppDestination.Chat.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onProfileClick = {
+                    navController.navigate(AppDestination.OrganisationProfile.route) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(route = AppDestination.OrganisationViewProject.route,
+            arguments = listOf(
+                navArgument("currentUser") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentUser = backStackEntry.arguments?.getString("currentUser") ?: return@composable
+
+            ViewProjectRoute(
+                viewModel = viewModel<ViewProjectViewModel>(),
+                onProjectSelected = { projectId ->
+                    navController.navigate(
+                        AppDestination.OrganisationProjectDetail.createRoute(projectId)
+                    )
+                },
+                onHomeClick = {
+                    navController.navigate(
+                        AppDestination.OrganisationHome.createRoute(currentUser)
+                    ) {
+                        popUpTo(AppDestination.OrganisationHome.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
                 },
                 onMessagesClick = {
                     navController.navigate(AppDestination.Chat.route) {
@@ -439,7 +491,7 @@ fun AppNavHost(
 
         composable(route = AppDestination.Chat.route) {
             ChatRoute(
-                viewModel = viewModel<ChatViewModel>(),
+                viewModel = viewModel<ChatScreenViewModel>(),
                 onBackClick = {
                     navController.popBackStack()
                 }

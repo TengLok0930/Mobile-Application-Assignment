@@ -1,81 +1,39 @@
 package com.example.fundforgoals.feature.chat.presentation
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.fundforgoals.supabase.repository.ChatRepository
+import com.example.fundforgoals.supabase.repository.ChatroomRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class ChatViewModel : ViewModel() {
+class ChatScreenViewModel : ViewModel() {
     val chatRepository = ChatRepository()
+    val chatroomRepository = ChatroomRepository()
 
-    private val allConversations = listOf(
-        ConversationUi(
-            id = "1",
-            title = "Project 1",
-            subtitle = "Fundraising discussion",
-            date = "19/7/2026"
-        ),
-        ConversationUi(
-            id = "2",
-            title = "Project 2",
-            subtitle = "Donation follow-up",
-            date = "18/7/2026"
-        )
-    )
-
-    private val conversationMessages = mutableMapOf(
-        "1" to listOf(
-            ChatMessageUi(
-                id = "1",
-                text = "Hi, I want to fund this project",
-                isMe = true,
-                timestamp = "19/7/2026"
-            ),
-            ChatMessageUi(
-                id = "2",
-                text = "Hi, how much do you want to fund?",
-                isMe = false,
-                timestamp = "19/7/2026"
-            )
-        ),
-        "2" to listOf(
-            ChatMessageUi(
-                id = "3",
-                text = "Hello, is this project still accepting support?",
-                isMe = true,
-                timestamp = "18/7/2026"
-            ),
-            ChatMessageUi(
-                id = "4",
-                text = "Yes, contributions are still open.",
-                isMe = false,
-                timestamp = "18/7/2026"
-            )
-        )
-    )
-
-    private val _uiState = MutableStateFlow(
-        ChatUiState(
-            projectTitle = "Project 1",
-            activeOrganisationName = "Organisation 1",
-            selectedConversationId = "1",
-            conversations = allConversations,
-            messages = conversationMessages["1"].orEmpty()
-        )
-    )
+    private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-    fun onAction(action: ChatAction) {
-        when (action) {
-            is ChatAction.OnInputChanged -> {
+    fun onAction(action: ChatScreenAction) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    chatroom = chatroomRepository.getChatroom()
+                )
+            }
+        }
+
+        /*when (action) {
+            is ChatScreenAction.OnInputChanged -> {
                 _uiState.update { it.copy(input = action.value) }
             }
 
-            is ChatAction.OnSearchQueryChanged -> {
+            is ChatScreenAction.OnSearchQueryChanged -> {
                 val filtered = if (action.value.isBlank()) {
-                    allConversations
+                    getChatroom()
                 } else {
                     allConversations.filter {
                         it.title.contains(action.value, ignoreCase = true) ||
@@ -91,7 +49,7 @@ class ChatViewModel : ViewModel() {
                 }
             }
 
-            is ChatAction.OnConversationSelected -> {
+            is ChatScreenAction.OnConversationSelected -> {
                 val selectedConversation = allConversations.firstOrNull {
                     it.id == action.conversationId
                 }
@@ -107,7 +65,7 @@ class ChatViewModel : ViewModel() {
                 }
             }
 
-            ChatAction.OnSendClick -> {
+            ChatScreenAction.OnSendClick -> {
                 val currentState = _uiState.value
                 val currentInput = currentState.input.trim()
                 val conversationId = currentState.selectedConversationId ?: return
@@ -132,9 +90,16 @@ class ChatViewModel : ViewModel() {
                 }
             }
 
-            ChatAction.OnBackClick,
-            ChatAction.OnSearchClick,
-            ChatAction.OnAddClick -> Unit
-        }
+            ChatScreenAction.OnBackClick,
+            ChatScreenAction.OnSearchClick,
+            ChatScreenAction.OnAddClick -> Unit
+        }*/
+    }
+
+    private fun getChatroom() {
+        val currentState = _uiState.value
+
+
     }
 }
+

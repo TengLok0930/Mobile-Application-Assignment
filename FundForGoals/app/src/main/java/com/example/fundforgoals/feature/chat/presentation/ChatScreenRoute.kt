@@ -6,7 +6,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun ChatRoute(
-    viewModel: ChatViewModel,
+    viewModel: ChatScreenViewModel,
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -15,7 +15,7 @@ fun ChatRoute(
         uiState = uiState,
         onAction = { action ->
             when (action) {
-                ChatAction.OnBackClick -> onBackClick()
+                ChatScreenAction.OnBackClick -> onBackClick()
                 else -> viewModel.onAction(action)
             }
         }

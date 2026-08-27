@@ -1,5 +1,6 @@
-package com.example.fundforgoals.feature.member.home.presentation
+package com.example.fundforgoals.feature.organisation.viewProject
 
+import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,13 +15,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
@@ -42,22 +43,23 @@ import com.example.fundforgoals.core.ui.components.input.SearchBar
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import com.example.fundforgoals.supabase.model.Project
+import kotlin.text.orEmpty
 
 @Composable
-fun MemberHomeScreen(
-    uiState: MemberHomeUiState,
-    onAction: (MemberHomeAction) -> Unit,
+fun ViewProjectScreen(
+    uiState: ViewProjectUiState,
+    onAction: (ViewProjectAction) -> Unit,
     modifier: Modifier = Modifier,
     isCompact: Boolean = true
 ) {
     if (isCompact) {
-        MemberHomeCompactScreen(
+        ViewProjectCompactScreen(
             uiState = uiState,
             onAction = onAction,
             modifier = modifier
         )
     } else {
-        MemberHomeExpandedScreen(
+        ViewProjectExpandedScreen(
             uiState = uiState,
             onAction = onAction,
             modifier = modifier
@@ -66,9 +68,9 @@ fun MemberHomeScreen(
 }
 
 @Composable
-private fun MemberHomeCompactScreen(
-    uiState: MemberHomeUiState,
-    onAction: (MemberHomeAction) -> Unit,
+fun ViewProjectCompactScreen(
+    uiState: ViewProjectUiState,
+    onAction: (ViewProjectAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -80,16 +82,16 @@ private fun MemberHomeCompactScreen(
             SearchBar(
                 value = uiState.searchQuery,
                 onValueChange = {
-                    onAction(MemberHomeAction.OnSearchQueryChanged(it))
+                    onAction(ViewProjectAction.OnSearchQueryChanged(it))
                 }
             )
         },
         bottomBar = {
             AppBottomBar(
                 selectedItem = "home",
-                onMessagesClick = { onAction(MemberHomeAction.OnMessagesClick) },
-                onHomeClick = { onAction(MemberHomeAction.OnHomeClick) },
-                onProfileClick = { onAction(MemberHomeAction.OnProfileClick) }
+                onMessagesClick = { onAction(ViewProjectAction.OnMessagesClick) },
+                onHomeClick = { onAction(ViewProjectAction.OnHomeClick) },
+                onProfileClick = { onAction(ViewProjectAction.OnProfileClick) }
             )
         }
     ) { innerPadding ->
@@ -99,7 +101,7 @@ private fun MemberHomeCompactScreen(
                 .padding(innerPadding),
             color = MaterialTheme.colorScheme.background
         ) {
-            MemberHomeContent(
+            ViewProjectContent(
                 uiState = uiState,
                 onAction = onAction,
                 modifier = Modifier
@@ -112,9 +114,9 @@ private fun MemberHomeCompactScreen(
 }
 
 @Composable
-private fun MemberHomeExpandedScreen(
-    uiState: MemberHomeUiState,
-    onAction: (MemberHomeAction) -> Unit,
+fun ViewProjectExpandedScreen(
+    uiState: ViewProjectUiState,
+    onAction: (ViewProjectAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -129,9 +131,9 @@ private fun MemberHomeExpandedScreen(
         ) {
             AppNavigationRail(
                 selectedItem = "home",
-                onMessagesClick = { onAction(MemberHomeAction.OnMessagesClick) },
-                onHomeClick = { onAction(MemberHomeAction.OnHomeClick) },
-                onProfileClick = { onAction(MemberHomeAction.OnProfileClick) }
+                onMessagesClick = { onAction(ViewProjectAction.OnMessagesClick) },
+                onHomeClick = { onAction(ViewProjectAction.OnHomeClick) },
+                onProfileClick = { onAction(ViewProjectAction.OnProfileClick) }
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -153,19 +155,18 @@ private fun MemberHomeExpandedScreen(
                     SearchBar(
                         value = uiState.searchQuery,
                         onValueChange = {
-                            onAction(MemberHomeAction.OnSearchQueryChanged(it))
+                            onAction(ViewProjectAction.OnSearchQueryChanged(it))
                         }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    MemberHomeListPane(
+                    ViewProjectListPane(
                         uiState = uiState,
                         modifier = Modifier.fillMaxSize(),
+                        showSelection = true,
                         onProjectClick = { projectId ->
-                            onAction(
-                                MemberHomeAction.OnProjectClick(projectId)
-                            )
+                            onAction(ViewProjectAction.OnProjectClick(projectId))
                         }
                     )
                 }
@@ -196,9 +197,9 @@ private fun MemberHomeExpandedScreen(
 }
 
 @Composable
-private fun MemberHomeContent(
-    uiState: MemberHomeUiState,
-    onAction: (MemberHomeAction) -> Unit,
+fun ViewProjectContent(
+    uiState: ViewProjectUiState,
+    onAction: (ViewProjectAction) -> Unit,
     modifier: Modifier = Modifier,
     showSelection: Boolean = false
 ) {
@@ -245,13 +246,13 @@ private fun MemberHomeContent(
         }
 
         else -> {
-            MemberHomeListPane(
+            ViewProjectListPane(
                 uiState = uiState,
                 modifier = modifier,
                 showSelection = showSelection,
                 onProjectClick = { projectId ->
                     onAction(
-                        MemberHomeAction.OnProjectClick(projectId)
+                        ViewProjectAction.OnProjectClick(projectId)
                     )
                 }
             )
@@ -260,8 +261,8 @@ private fun MemberHomeContent(
 }
 
 @Composable
-private fun MemberHomeListPane(
-    uiState: MemberHomeUiState,
+private fun ViewProjectListPane(
+    uiState: ViewProjectUiState,
     onProjectClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     showSelection: Boolean = false
