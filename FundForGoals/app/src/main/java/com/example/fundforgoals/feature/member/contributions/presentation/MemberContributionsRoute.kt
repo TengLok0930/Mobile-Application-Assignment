@@ -8,7 +8,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun MemberContributionsRoute(
     onBackClick: () -> Unit,
-    onMessagesClick: () -> Unit,
+    onMessagesClick: (currentUser: String) -> Unit,
     onHomeClick: () -> Unit,
     onProfileClick: () -> Unit,
     onContributionClick: (String) -> Unit,
@@ -24,7 +24,7 @@ fun MemberContributionsRoute(
         onAction = { action ->
             when (action) {
                 MemberContributionsAction.OnBackClick -> onBackClick()
-                MemberContributionsAction.OnMessagesClick -> onMessagesClick()
+                MemberContributionsAction.OnMessagesClick -> onMessagesClick(uiState.memberName)
                 MemberContributionsAction.OnHomeClick -> onHomeClick()
                 MemberContributionsAction.OnProfileClick -> onProfileClick()
                 is MemberContributionsAction.OnContributionClick -> {

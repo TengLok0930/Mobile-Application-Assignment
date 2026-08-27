@@ -11,7 +11,7 @@ import com.example.fundforgoals.core.util.rememberContentType
 fun MemberHomeRoute(
     viewModel: MemberHomeViewModel,
     onProjectSelected: (Int) -> Unit,
-    onMessagesClick: () -> Unit,
+    onMessagesClick: (currentUserId: String) -> Unit,
     onProfileClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -31,7 +31,7 @@ fun MemberHomeRoute(
                     }
                 }
 
-                MemberHomeAction.OnMessagesClick -> onMessagesClick()
+                MemberHomeAction.OnMessagesClick -> onMessagesClick(uiState.currentUser)
                 MemberHomeAction.OnProfileClick -> onProfileClick()
                 is MemberHomeAction.OnSearchQueryChanged -> viewModel.onAction(action)
                 MemberHomeAction.OnHomeClick -> viewModel.onAction(action)

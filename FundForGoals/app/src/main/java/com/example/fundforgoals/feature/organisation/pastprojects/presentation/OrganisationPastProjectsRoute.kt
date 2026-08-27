@@ -9,7 +9,7 @@ import com.example.fundforgoals.core.util.rememberContentType
 @Composable
 fun OrganisationPastProjectsRoute(
     onBackClick: () -> Unit,
-    onMessagesClick: () -> Unit,
+    onMessagesClick: (currentUser: String) -> Unit,
     onHomeClick: () -> Unit,
     onProfileClick: () -> Unit,
     viewModel: OrganisationPastProjectsViewModel = viewModel()
@@ -23,7 +23,7 @@ fun OrganisationPastProjectsRoute(
         onAction = { action ->
             when (action) {
                 OrganisationPastProjectsAction.OnBackClick -> onBackClick()
-                OrganisationPastProjectsAction.OnMessagesClick -> onMessagesClick()
+                OrganisationPastProjectsAction.OnMessagesClick -> onMessagesClick("")
                 OrganisationPastProjectsAction.OnHomeClick -> onHomeClick()
                 OrganisationPastProjectsAction.OnProfileClick -> onProfileClick()
             }

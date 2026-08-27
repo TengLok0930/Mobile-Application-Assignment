@@ -17,11 +17,15 @@ class ChatRepository {
             .decodeList<Chat>()
     }
 
-    suspend fun addChat(chat: Chat) {
+    suspend fun addChat(
+        content: String,
+        chatroomId: Int,
+        senderId: Int
+    ) {
         val request = CreateChatRequest(
-            content = chat.content,
-            chatroom = chat.chatroom,
-            sender = chat.sender
+            content = content,
+            chatroom = chatroomId,
+            sender = senderId
         )
 
         supabase
@@ -56,5 +60,18 @@ class ChatRepository {
                     eq("id", id)
                 }
             }
+    }
+
+    suspend fun getChatsByChatroom(
+        chatroomId: Int
+    ): List<Chat> {
+        return supabase
+            .from("chat")
+            .select {
+                filter {
+                    eq("chatroom", chatroomId)
+                }
+            }
+            .decodeList<Chat>()
     }
 }

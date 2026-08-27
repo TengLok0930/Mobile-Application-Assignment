@@ -10,7 +10,7 @@ import com.example.fundforgoals.core.util.rememberContentType
 fun OrganisationProfileRoute(
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
-    onMessagesClick: () -> Unit,
+    onMessagesClick: (currentUser: String) -> Unit,
     onHomeClick: () -> Unit,
     onViewPastProjectsClick: () -> Unit,
     onViewContributionsClick: () -> Unit,
@@ -27,7 +27,7 @@ fun OrganisationProfileRoute(
             when (action) {
                 OrganisationProfileAction.OnBackClick -> onBackClick()
                 OrganisationProfileAction.OnLogoutClick -> onLogoutClick()
-                OrganisationProfileAction.OnMessagesClick -> onMessagesClick()
+                OrganisationProfileAction.OnMessagesClick -> onMessagesClick(uiState.organisationName)
                 OrganisationProfileAction.OnHomeClick -> onHomeClick()
                 OrganisationProfileAction.OnViewPastProjectsClick -> onViewPastProjectsClick()
                 OrganisationProfileAction.OnViewContributionsClick -> onViewContributionsClick()

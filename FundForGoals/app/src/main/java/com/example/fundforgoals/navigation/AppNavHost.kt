@@ -26,7 +26,7 @@ import com.example.fundforgoals.feature.auth.registration.organisation.presentat
 import com.example.fundforgoals.feature.auth.registration.organisation.presentation.OrganisationRegViewModel
 import com.example.fundforgoals.feature.auth.registration.signup_choice.presentation.SignUpChoiceRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatRoute
-import com.example.fundforgoals.feature.chat.presentation.ChatScreenViewModel
+import com.example.fundforgoals.feature.chat.presentation.ChatViewModel
 import com.example.fundforgoals.feature.member.contributions.presentation.MemberContributionsRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeViewModel
@@ -151,8 +151,8 @@ fun AppNavHost(
                         AppDestination.MemberProjectDetail.createRoute(projectId)
                     )
                 },
-                onMessagesClick = {
-                    navController.navigate(AppDestination.Chat.route) {
+                onMessagesClick = { currentUser ->
+                    navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
@@ -175,9 +175,8 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onMessagesClick = {
-                    navController.navigate(AppDestination.Chat.route) {
-                        launchSingleTop = true
+                onMessagesClick = { currentUser ->
+                    navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
@@ -205,8 +204,8 @@ fun AppNavHost(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onMessagesClick = {
-                    navController.navigate(AppDestination.Chat.route) {
+                onMessagesClick = { currentUser ->
+                    navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
@@ -247,8 +246,8 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onMessagesClick = {
-                    navController.navigate(AppDestination.Chat.route) {
+                onMessagesClick = { currentUser ->
+                    navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
@@ -284,8 +283,8 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onMessagesClick = {
-                    navController.navigate(AppDestination.Chat.route) {
+                onMessagesClick = { currentUser ->
+                    navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
@@ -310,8 +309,8 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onMessagesClick = {
-                    navController.navigate(AppDestination.Chat.route) {
+                onMessagesClick = { currentUser ->
+                    navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
@@ -344,8 +343,8 @@ fun AppNavHost(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onMessagesClick = {
-                    navController.navigate(AppDestination.Chat.route) {
+                onMessagesClick = { currentUser ->
+                    navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
@@ -489,12 +488,17 @@ fun AppNavHost(
             )
         }
 
-        composable(route = AppDestination.Chat.route) {
-            ChatRoute(
-                viewModel = viewModel<ChatScreenViewModel>(),
-                onBackClick = {
-                    navController.popBackStack()
+        composable(
+            route = AppDestination.Chat.route,
+            arguments = listOf(
+                navArgument("currentUser") {
+                    type = NavType.StringType
                 }
+            )
+        ) {
+            ChatRoute(
+                viewModel = viewModel<ChatViewModel>(),
+                onBackClick = { navController.popBackStack() }
             )
         }
 

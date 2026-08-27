@@ -50,6 +50,9 @@ import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import android.content.res.Configuration
 import androidx.compose.ui.platform.LocalConfiguration
+import com.example.fundforgoals.supabase.model.Chat
+import com.example.fundforgoals.supabase.model.Chatroom
+import coil.compose.AsyncImage
 
 @Composable
 fun ChatScreen(
@@ -65,9 +68,14 @@ fun ChatScreen(
         BrandAccentLight
     }
 
-    LaunchedEffect(uiState.messages.size, uiState.selectedConversationId) {
-        if (uiState.messages.isNotEmpty()) {
-            listState.animateScrollToItem(uiState.messages.lastIndex)
+    LaunchedEffect(
+        uiState.selectedChatroom,
+        uiState.chats.size
+    ) {
+        if (uiState.chats.isNotEmpty()) {
+            listState.animateScrollToItem(
+                uiState.chats.lastIndex
+            )
         }
     }
 
@@ -132,17 +140,23 @@ fun ChatScreen(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surface
                         ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 2.dp
+                        )
                     ) {
-                        ConversationPane(
+                        ChatroomPane(
                             searchText = uiState.searchQuery,
-                            selectedConversationId = uiState.selectedConversationId,
-                            conversations = uiState.conversations,
-                            onSearchChanged = {
-                                onAction(ChatAction.OnSearchQueryChanged(it))
+                            selectedChatroom = uiState.selectedChatroom,
+                            chatrooms = uiState.filteredChatrooms,
+                            onSearchChanged = { query ->
+                                onAction(
+                                    ChatAction.OnSearchQueryChanged(query)
+                                )
                             },
-                            onConversationSelected = { id ->
-                                onAction(ChatAction.OnConversationSelected(id))
+                            onChatroomSelected = { chatroom ->
+                                onAction(
+                                    ChatAction.OnChatroomSelected(chatroom)
+                                )
                             }
                         )
                     }
@@ -178,7 +192,7 @@ fun ChatScreen(
                             Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
-                                text = uiState.projectTitle,
+                                text = "Project ${uiState.project ?: ""}",
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold
@@ -189,7 +203,7 @@ fun ChatScreen(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                         )
 
-                        if (uiState.messages.isEmpty()) {
+                        if (uiState.chats.isEmpty()) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -212,8 +226,15 @@ fun ChatScreen(
                                 contentPadding = PaddingValues(vertical = 12.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                items(uiState.messages, key = { it.id }) { message ->
-                                    MessageBubble(message = message)
+                                items(
+                                    items = uiState.chats,
+                                    key = { chat -> chat.id ?: "${chat.chatroom}-${chat.createdAt}" }
+                                ) { chat ->
+                                    ChatBubble(
+                                        chat = chat,
+                                        currentUserId = uiState.currentUserId,
+                                        avatarUrl = uiState.userAvatars[chat.sender]
+                                    )
                                 }
                             }
                         }
@@ -238,7 +259,7 @@ fun ChatScreen(
                             }
 
                             OutlinedTextField(
-                                value = uiState.input,
+                                value = uiState.chatInput,
                                 onValueChange = {
                                     onAction(ChatAction.OnInputChanged(it))
                                 },
@@ -259,7 +280,13 @@ fun ChatScreen(
                             )
 
                             IconButton(
-                                onClick = { onAction(ChatAction.OnSendClick) },
+                                onClick = {
+                                    onAction(ChatAction.OnSendClick)
+                                },
+                                enabled = uiState.chatInput.isNotBlank() &&
+                                        uiState.selectedChatroom != null &&
+                                        uiState.currentUserId != null &&
+                                        !uiState.isSending,
                                 colors = IconButtonDefaults.iconButtonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -279,12 +306,12 @@ fun ChatScreen(
 }
 
 @Composable
-private fun ConversationPane(
+private fun ChatroomPane(
     searchText: String,
-    selectedConversationId: String?,
-    conversations: List<ConversationUi>,
+    selectedChatroom: Chatroom?,
+    chatrooms: List<Chatroom>,
     onSearchChanged: (String) -> Unit,
-    onConversationSelected: (String) -> Unit
+    onChatroomSelected: (Chatroom) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -298,47 +325,37 @@ private fun ConversationPane(
                 .fillMaxWidth()
                 .height(56.dp),
             placeholder = {
-                Text("Search chat", fontSize = 16.sp)
+                Text("Search chatroom")
             },
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.search_24px),
-                    contentDescription = "Search"
-                )
-            },
-            shape = RoundedCornerShape(28.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface
-            ),
             singleLine = true
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        if (conversations.isEmpty()) {
+        if (chatrooms.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "No conversations found.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text("No chatrooms found.")
             }
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(conversations, key = { it.id }) { conversation ->
-                    ConversationItem(
-                        title = conversation.title,
-                        subtitle = conversation.subtitle,
-                        date = conversation.date,
-                        isSelected = conversation.id == selectedConversationId,
-                        onClick = { onConversationSelected(conversation.id) }
+                items(
+                    items = chatrooms,
+                    key = { chatroom ->
+                        chatroom.id ?: "${chatroom.member1}-${chatroom.member2}"
+                    }
+                ) { chatroom ->
+
+                    ChatroomItem(
+                        chatroom = chatroom,
+                        isSelected = chatroom.id == selectedChatroom?.id,
+                        onClick = {
+                            onChatroomSelected(chatroom)
+                        }
                     )
                 }
             }
@@ -347,126 +364,78 @@ private fun ConversationPane(
 }
 
 @Composable
-private fun ConversationItem(
-    title: String,
-    subtitle: String,
-    date: String,
+private fun ChatroomItem(
+    chatroom: Chatroom,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor = if (isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-    }
-
-    val containerColor = if (isSelected) {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-    } else {
-        MaterialTheme.colorScheme.surface
-    }
-
-    Row(
+    Text(
+        text = "Project ${chatroom.project}",
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(containerColor)
-            .border(
-                width = 1.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(16.dp)
-            )
             .clickable(onClick = onClick)
-            .padding(12.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Box(
-            modifier = Modifier
-                .size(42.dp)
-                .border(
-                    1.dp,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.outline
-                    },
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = title.firstOrNull()?.uppercase() ?: "P",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = subtitle,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        Text(
-            text = date,
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun MessageBubble(message: ChatMessageUi) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (message.isMe) Arrangement.End else Arrangement.Start
-    ) {
-        if (message.isMe) {
-            ChatBox(message = message, isMe = true)
-            UserIcon(isMe = true)
+            .padding(16.dp),
+        fontWeight = if (isSelected) {
+            FontWeight.Bold
         } else {
-            UserIcon(isMe = false)
-            ChatBox(message = message, isMe = false)
+            FontWeight.Normal
         }
-    }
-}
-
-@Composable
-private fun UserIcon(isMe: Boolean) {
-    Box(
-        modifier = Modifier
-            .padding(vertical = 5.dp, horizontal = 4.dp)
-            .background(
-                color = if (isMe) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.secondary
-                },
-                shape = RoundedCornerShape(16.dp)
-            )
-            .size(24.dp)
     )
 }
 
 @Composable
+private fun ChatBubble(
+    chat: Chat,
+    currentUserId: Int?,
+    avatarUrl: String?
+) {
+    val isMe = currentUserId != null && chat.sender == currentUserId
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start,
+        verticalAlignment = Alignment.Bottom
+    ) {
+        if (!isMe) {
+            ChatAvatar(avatarUrl)
+            Spacer(modifier = Modifier.width(6.dp))
+        }
+
+        ChatBox(
+            content = chat.content,
+            timestamp = chat.createdAt,
+            isMe = isMe
+        )
+
+        if (isMe) {
+            Spacer(modifier = Modifier.width(6.dp))
+            ChatAvatar(avatarUrl)
+        }
+    }
+}
+
+@Composable
+private fun ChatAvatar(avatarUrl: String?) {
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        if (!avatarUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = avatarUrl,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Composable
 private fun ChatBox(
-    message: ChatMessageUi,
+    content: String,
+    timestamp: String,
     isMe: Boolean
 ) {
     Box(
@@ -487,14 +456,14 @@ private fun ChatBox(
     ) {
         Column {
             Text(
-                text = message.text,
+                text = content,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = message.timestamp,
+                text = timestamp,
                 fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
