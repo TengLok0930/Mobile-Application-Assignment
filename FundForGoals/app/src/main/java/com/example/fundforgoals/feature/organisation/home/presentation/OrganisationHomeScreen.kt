@@ -45,7 +45,6 @@ import com.example.fundforgoals.core.ui.components.input.SearchBar
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import com.example.fundforgoals.core.ui.theme.FundForGoalsTheme
-import com.example.fundforgoals.supabase.model.Project
 
 @Composable
 fun OrganisationHomeScreen(
@@ -81,18 +80,19 @@ private fun OrganisationHomeCompactScreen(
             .fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Box(
+            Box (
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
+                    modifier = Modifier,
                     text = uiState.loginOrganisation,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
         },
@@ -111,7 +111,7 @@ private fun OrganisationHomeCompactScreen(
                 .padding(innerPadding),
             color = MaterialTheme.colorScheme.background
         ) {
-            Column(
+            Column (
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
@@ -129,8 +129,9 @@ private fun OrganisationHomeCompactScreen(
                         .padding(top = 16.dp)
                 ) {
                     Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = { onAction(OrganisationHomeAction.OnNewProjectClick) },
+                        modifier = Modifier
+                            .weight(1f),
+                        onClick = {onAction(OrganisationHomeAction.OnNewProjectClick)},
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
@@ -138,6 +139,7 @@ private fun OrganisationHomeCompactScreen(
                     ) {
                         Text(
                             text = "Create New Project",
+                            color = MaterialTheme.colorScheme.onPrimary,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -145,8 +147,9 @@ private fun OrganisationHomeCompactScreen(
                     Spacer(modifier = Modifier.size(16.dp))
 
                     Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = { onAction(OrganisationHomeAction.OnViewProjectClick) },
+                        modifier = Modifier
+                            .weight(1f),
+                        onClick = {onAction(OrganisationHomeAction.OnViewProjectClick)},
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
@@ -154,6 +157,7 @@ private fun OrganisationHomeCompactScreen(
                     ) {
                         Text(
                             text = "View Other Project",
+                            color = MaterialTheme.colorScheme.onPrimary,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -213,18 +217,19 @@ private fun OrganisationHomeExpandedScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    Box(
+                    Box (
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 16.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
+                            modifier = Modifier,
                             text = uiState.loginOrganisation,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 30.sp,
                             fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
                     }
 
@@ -241,27 +246,35 @@ private fun OrganisationHomeExpandedScreen(
                             .padding(top = 16.dp)
                     ) {
                         Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = { onAction(OrganisationHomeAction.OnNewProjectClick) },
+                            modifier = Modifier
+                                .weight(1f),
+                            onClick = {onAction(OrganisationHomeAction.OnNewProjectClick)},
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.onPrimary
                             )
                         ) {
-                            Text(text = "Create New Project")
+                            Text(
+                                text = "Create New Project",
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
 
                         Spacer(modifier = Modifier.size(16.dp))
 
                         Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = { onAction(OrganisationHomeAction.OnViewProjectClick) },
+                            modifier = Modifier
+                                .weight(1f),
+                            onClick = {onAction(OrganisationHomeAction.OnViewProjectClick)},
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.onPrimary
                             )
                         ) {
-                            Text(text = "View Other Project")
+                            Text(
+                                text = "View Other Project",
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
                     }
 
@@ -270,11 +283,8 @@ private fun OrganisationHomeExpandedScreen(
                     OrganisationHomeListPane(
                         uiState = uiState,
                         modifier = Modifier.fillMaxSize(),
-                        showSelection = true,
                         onProjectClick = { project ->
-                            project.id?.let { id ->
-                                onAction(OrganisationHomeAction.OnProjectClick(id))
-                            }
+                            onAction(OrganisationHomeAction.OnProjectClick(project.id))
                         }
                     )
                 }
@@ -292,8 +302,7 @@ private fun OrganisationHomeExpandedScreen(
                 )
             ) {
                 ProjectDetailPane(
-                    project = uiState.selectedProject,
-                    creatorName = uiState.selectedProject?.let { uiState.creatorNames[it.createdBy] }
+                    project = uiState.selectedProject
                 )
             }
         }
@@ -355,9 +364,7 @@ private fun OrganisationHomeContent(
                 modifier = modifier,
                 showSelection = showSelection,
                 onProjectClick = { project ->
-                    project.id?.let { id ->
-                        onAction(OrganisationHomeAction.OnProjectClick(id))
-                    }
+                    onAction(OrganisationHomeAction.OnProjectClick(project.id))
                 }
             )
         }
@@ -367,7 +374,7 @@ private fun OrganisationHomeContent(
 @Composable
 private fun OrganisationHomeListPane(
     uiState: OrganisationHomeUiState,
-    onProjectClick: (Project) -> Unit,
+    onProjectClick: (ProjectUi) -> Unit,
     modifier: Modifier = Modifier,
     showSelection: Boolean = false
 ) {
@@ -376,10 +383,9 @@ private fun OrganisationHomeListPane(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
-        items(uiState.projects, key = { it.id ?: it.hashCode() }) { project ->
+        items(uiState.projects, key = { it.id }) { project ->
             ProjectCard(
                 project = project,
-                creatorName = uiState.creatorNames[project.createdBy],
                 isSelected = showSelection && project.id == uiState.selectedProjectId,
                 onClick = { onProjectClick(project) }
             )
@@ -389,8 +395,7 @@ private fun OrganisationHomeListPane(
 
 @Composable
 private fun ProjectCard(
-    project: Project,
-    creatorName: String?,
+    project: ProjectUi,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -422,7 +427,9 @@ private fun ProjectCard(
                 shape = RoundedCornerShape(20.dp)
             ),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -459,7 +466,7 @@ private fun ProjectCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = creatorName ?: "",
+                    text = project.organisation,
                     color = accentColor,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
@@ -471,8 +478,7 @@ private fun ProjectCard(
 
 @Composable
 private fun ProjectDetailPane(
-    project: Project?,
-    creatorName: String? = null
+    project: ProjectUi?
 ) {
     val accentColor = if (isSystemInDarkTheme()) {
         BrandAccentDark
@@ -492,10 +498,6 @@ private fun ProjectDetailPane(
             )
         }
     } else {
-        val currentAmount = project.currentFund
-        val targetAmount = if (project.fundGoal == 0.0) 1.0 else project.fundGoal
-        val progressFraction = (currentAmount / targetAmount).toFloat().coerceIn(0f, 1f)
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -533,7 +535,7 @@ private fun ProjectDetailPane(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
-                        text = creatorName ?: "",
+                        text = project.organisation,
                         color = accentColor,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
@@ -552,7 +554,7 @@ private fun ProjectDetailPane(
                 )
 
                 LinearProgressIndicator(
-                    progress = { progressFraction },
+                    progress = { project.progress },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(10.dp)
@@ -563,7 +565,7 @@ private fun ProjectDetailPane(
             }
 
             Text(
-                text = "Contributions: $${project.currentFund}",
+                text = "Contributions: $${project.contributionAmount}",
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
@@ -580,7 +582,7 @@ private fun ProjectDetailPane(
                 )
 
                 Text(
-                    text = project.desc,
+                    text = project.description,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 16.sp
                 )
@@ -595,5 +597,48 @@ private fun ProjectDetailPane(
                 Text("Contribute")
             }
         }
+    }
+}
+
+@Preview(name = "Compact", showBackground = true)
+@Composable
+private fun AdminHomeCompactPreview() {
+    FundForGoalsTheme {
+        OrganisationHomeScreen(
+            uiState = OrganisationHomeUiState(
+                projects = listOf(
+                    ProjectUi("1", "Project 1", "Organisation 1", "desc 1"),
+                    ProjectUi("2", "Project 2", "Organisation 1", "desc 2"),
+                    ProjectUi("3", "Project 3", "Organisation 2", "desc 3")
+                ),
+                loginOrganisation = "Organisation 1"
+            ),
+            onAction = {},
+            isCompact = true
+        )
+    }
+}
+
+@Preview(
+    name = "Expanded",
+    widthDp = 1000,
+    heightDp = 700,
+    showBackground = true
+)
+@Composable
+private fun AdminHomeExpandedPreview() {
+    FundForGoalsTheme {
+        OrganisationHomeScreen(
+            uiState = OrganisationHomeUiState(
+                projects = listOf(
+                    ProjectUi("1", "Project 1", "Organisation 1", "desc 1"),
+                    ProjectUi("2", "Project 2", "Organisation 1", "desc 2"),
+                    ProjectUi("3", "Project 3", "Organisation 2", "desc 3")
+                ),
+                loginOrganisation = "Organisation 1"
+            ),
+            onAction = {},
+            isCompact = false
+        )
     }
 }

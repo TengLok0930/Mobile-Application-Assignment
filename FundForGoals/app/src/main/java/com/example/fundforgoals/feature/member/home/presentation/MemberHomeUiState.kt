@@ -1,17 +1,22 @@
 package com.example.fundforgoals.feature.member.home.presentation
 
-import com.example.fundforgoals.supabase.model.Project
+data class ProjectUi(
+    val id: String,
+    val title: String,
+    val organisation: String,
+    val description: String,
+    val progress: Float = 0f,
+    val contributionAmount: Int = 0
+)
 
 data class MemberHomeUiState(
-    val currentUser: String,
     val searchQuery: String = "",
     val selectedFilter: String = "Newest",
-    val projects: List<Project> = emptyList(),
-    val creatorNames: Map<Int, String> = emptyMap(),
-    val selectedProjectId: Int? = null,
+    val projects: List<ProjectUi> = emptyList(),
+    val selectedProjectId: String? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 ) {
-    val selectedProject: Project?
+    val selectedProject: ProjectUi?
         get() = projects.firstOrNull { it.id == selectedProjectId }
 }

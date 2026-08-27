@@ -10,7 +10,7 @@ import com.example.fundforgoals.core.util.rememberContentType
 @Composable
 fun MemberHomeRoute(
     viewModel: MemberHomeViewModel,
-    onProjectSelected: (Int) -> Unit,
+    onProjectSelected: (String) -> Unit,
     onMessagesClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {

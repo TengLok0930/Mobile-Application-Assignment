@@ -8,16 +8,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun LoginRoute(
+    onBackClick: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     onSignUpClick: () -> Unit,
-    onLoginSuccess: (username: String, userType: String) -> Unit,
+    onLoginSuccess: (String) -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState.isLoginSuccessful) {
         if (uiState.isLoginSuccessful) {
-            onLoginSuccess(uiState.username, uiState.userType)
+            onLoginSuccess(uiState.userType)
             viewModel.onLoginNavigated()
         }
     }
@@ -26,6 +27,7 @@ fun LoginRoute(
         uiState = uiState,
         onAction = { action ->
             when (action) {
+                LoginAction.OnBackClick -> onBackClick()
                 LoginAction.OnForgotPasswordClick -> onForgotPasswordClick()
                 LoginAction.OnSignUpClick -> onSignUpClick()
                 else -> viewModel.onAction(action)

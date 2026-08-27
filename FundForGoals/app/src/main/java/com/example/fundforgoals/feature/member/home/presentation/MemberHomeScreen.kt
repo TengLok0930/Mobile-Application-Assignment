@@ -41,7 +41,6 @@ import com.example.fundforgoals.app.navigation.AppNavigationRail
 import com.example.fundforgoals.core.ui.components.input.SearchBar
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
-import com.example.fundforgoals.supabase.model.Project
 
 @Composable
 fun MemberHomeScreen(
@@ -162,10 +161,8 @@ private fun MemberHomeExpandedScreen(
                     MemberHomeListPane(
                         uiState = uiState,
                         modifier = Modifier.fillMaxSize(),
-                        onProjectClick = { projectId ->
-                            onAction(
-                                MemberHomeAction.OnProjectClick(projectId)
-                            )
+                        onProjectClick = { project ->
+                            onAction(MemberHomeAction.OnProjectClick(project.id))
                         }
                     )
                 }
@@ -183,12 +180,7 @@ private fun MemberHomeExpandedScreen(
                 )
             ) {
                 ProjectDetailPane(
-                    project = uiState.selectedProject,
-                    creatorName = uiState.selectedProject
-                        ?.let { project ->
-                            uiState.creatorNames[project.createdBy]
-                        }
-                        .orEmpty()
+                    project = uiState.selectedProject
                 )
             }
         }
@@ -249,10 +241,8 @@ private fun MemberHomeContent(
                 uiState = uiState,
                 modifier = modifier,
                 showSelection = showSelection,
-                onProjectClick = { projectId ->
-                    onAction(
-                        MemberHomeAction.OnProjectClick(projectId)
-                    )
+                onProjectClick = { project ->
+                    onAction(MemberHomeAction.OnProjectClick(project.id))
                 }
             )
         }
@@ -262,7 +252,7 @@ private fun MemberHomeContent(
 @Composable
 private fun MemberHomeListPane(
     uiState: MemberHomeUiState,
-    onProjectClick: (Int) -> Unit,
+    onProjectClick: (ProjectUi) -> Unit,
     modifier: Modifier = Modifier,
     showSelection: Boolean = false
 ) {
@@ -271,23 +261,11 @@ private fun MemberHomeListPane(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
-        items(
-            items = uiState.projects,
-            key = { project ->
-                project.id ?: project.title
-            }
-        ) { project ->
-
+        items(uiState.projects, key = { it.id }) { project ->
             ProjectCard(
                 project = project,
-                creatorName = uiState.creatorNames[project.createdBy].orEmpty(),
-                isSelected = showSelection &&
-                        project.id == uiState.selectedProjectId,
-                onClick = {
-                    project.id?.let { projectId ->
-                        onProjectClick(projectId)
-                    }
-                }
+                isSelected = showSelection && project.id == uiState.selectedProjectId,
+                onClick = { onProjectClick(project) }
             )
         }
     }
@@ -295,8 +273,7 @@ private fun MemberHomeListPane(
 
 @Composable
 private fun ProjectCard(
-    project: Project,
-    creatorName: String,
+    project: ProjectUi,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -331,9 +308,7 @@ private fun ProjectCard(
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -348,10 +323,7 @@ private fun ProjectCard(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = project.title
-                        .firstOrNull()
-                        ?.uppercase()
-                        ?: "P",
+                    text = project.title.firstOrNull()?.uppercase() ?: "P",
                     color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold
                 )
@@ -372,7 +344,7 @@ private fun ProjectCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Created by user $creatorName",
+                    text = project.organisation,
                     color = accentColor,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
@@ -384,8 +356,7 @@ private fun ProjectCard(
 
 @Composable
 private fun ProjectDetailPane(
-    project: Project?,
-    creatorName: String
+    project: ProjectUi?
 ) {
     val accentColor = if (isSystemInDarkTheme()) {
         BrandAccentDark
@@ -405,76 +376,100 @@ private fun ProjectDetailPane(
             )
         }
     } else {
-        val progress = if (project.fundGoal > 0.0) {
-            (project.currentFund / project.fundGoal)
-                .toFloat()
-                .coerceIn(0f, 1f)
-        } else {
-            0f
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = project.title,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = project.title.firstOrNull()?.uppercase() ?: "P",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    )
+                }
 
-            Text(
-                text = "Created by user $creatorName",
-                color = accentColor,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
+                Spacer(modifier = Modifier.size(16.dp))
 
-            Text(
-                text = "Progress",
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Medium
-            )
+                Column {
+                    Text(
+                        text = project.title,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
 
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(10.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primary.copy(
-                    alpha = 0.15f
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = project.organisation,
+                        color = accentColor,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Progress",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
                 )
-            )
+
+                LinearProgressIndicator(
+                    progress = { project.progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(10.dp)
+                        .clip(RoundedCornerShape(10.dp)),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                )
+            }
 
             Text(
-                text = "Current funds: RM %.2f".format(project.currentFund),
+                text = "Contributions: $${project.contributionAmount}",
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
             )
 
-            Text(
-                text = "Funding goal: RM %.2f".format(project.fundGoal),
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Overview",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
-            Text(
-                text = project.desc,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 16.sp
-            )
+                Text(
+                    text = project.description,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 16.sp
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
             androidx.compose.material3.Button(
-                onClick = {},
+                onClick = { },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Contribute")
@@ -482,3 +477,4 @@ private fun ProjectDetailPane(
         }
     }
 }
+
