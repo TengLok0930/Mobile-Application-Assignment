@@ -5,23 +5,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class MemberContributionUi(
-    val id: String,
-    val projectTitle: String,
-    val organisationName: String,
-    val amountText: String,
-    val isOngoing: Boolean,
-    val hasECertificate: Boolean
-)
-
-data class MemberContributionsUiState(
-    val isLoading: Boolean = false,
-    val memberName: String = "",
-    val ongoingContributions: List<MemberContributionUi> = emptyList(),
-    val pastContributions: List<MemberContributionUi> = emptyList(),
-    val errorMessage: String? = null
-)
-
 class MemberContributionsViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(

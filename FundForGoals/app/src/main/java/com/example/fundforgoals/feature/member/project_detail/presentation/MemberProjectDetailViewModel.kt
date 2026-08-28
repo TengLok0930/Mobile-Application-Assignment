@@ -5,21 +5,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class ProjectDetailUi(
-    val id: String,
-    val title: String,
-    val organisation: String,
-    val description: String,
-    val contributionAmount: String,
-    val progress: Float
-)
-
-data class MemberProjectDetailUiState(
-    val isLoading: Boolean = false,
-    val project: ProjectDetailUi? = null,
-    val errorMessage: String? = null
-)
-
 class MemberProjectDetailViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(MemberProjectDetailUiState(isLoading = true))

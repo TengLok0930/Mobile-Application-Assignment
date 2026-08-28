@@ -10,18 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class LoginUiState(
-    val username: String = "",
-    val password: String = "",
-    val userType: String = "",
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val isLoginSuccessful: Boolean = false
-) {
-    val isLoginEnabled: Boolean
-        get() = username.isNotBlank() && password.isNotBlank()
-}
-
 class LoginViewModel : ViewModel() {
     val userRepository = UserRepository()
 
@@ -60,13 +48,9 @@ class LoginViewModel : ViewModel() {
     }
 
     private fun login() {
-        if (_uiState.value.isLoading) return
-
         val currentState = _uiState.value
-        val username = currentState.username.trim()
-        val password = currentState.password
 
-        if (username.isBlank() || password.isBlank()) {
+        if (!currentState.isLoginEnabled) {
             _uiState.update {
                 it.copy(
                     errorMessage = "Username and password cannot be empty!",
@@ -76,8 +60,8 @@ class LoginViewModel : ViewModel() {
             return
         }
 
-        if (username == "admin") {
-            if (password == "admin123") {
+        if (currentState.username == "admin") {
+            if (currentState.password == "admin123") {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -86,6 +70,7 @@ class LoginViewModel : ViewModel() {
                         userType = "admin"
                     )
                 }
+                return
             } else {
                 _uiState.update {
                     it.copy(
@@ -95,7 +80,14 @@ class LoginViewModel : ViewModel() {
                     )
                 }
             }
-            return
+        } else {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    errorMessage = "User not found",
+                    isLoginSuccessful = false
+                )
+            }
         }
 
         viewModelScope.launch {
@@ -108,7 +100,9 @@ class LoginViewModel : ViewModel() {
             }
 
             try {
-                val user = userRepository.getUserByUsername(username)
+                val user = userRepository.getUserByUsername(
+                    currentState.username.trim()
+                )
 
                 when {
                     user == null -> {
@@ -121,21 +115,11 @@ class LoginViewModel : ViewModel() {
                         }
                     }
 
-                    user.password != password -> {
+                    user.password != currentState.password -> {
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
                                 errorMessage = "Incorrect password",
-                                isLoginSuccessful = false
-                            )
-                        }
-                    }
-
-                    !user.isApproved -> {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = "Your account is pending admin approval.",
                                 isLoginSuccessful = false
                             )
                         }

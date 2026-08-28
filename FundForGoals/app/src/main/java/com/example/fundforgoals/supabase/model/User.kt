@@ -16,10 +16,7 @@ data class User(
     val avatarUrl: String,
 
     @SerialName("user_type")
-    val userType: String,
-
-    @SerialName("is_approved")
-    val isApproved: Boolean = false
+    val userType: String
 )
 
 @Serializable
@@ -34,10 +31,7 @@ data class CreateUserRequest(
     val avatarUrl: String,
 
     @SerialName("user_type")
-    val userType: String,
-
-    @SerialName("is_approved")
-    val isApproved: Boolean = false
+    val userType: String
 )
 
 @Serializable
@@ -52,8 +46,5 @@ data class UpdateUserRequest(
     val avatarUrl: String,
 
     @SerialName("user_type")
-    val userType: String,
-
-    @SerialName("is_approved")
-    val isApproved: Boolean = false
+    val userType: String
 )

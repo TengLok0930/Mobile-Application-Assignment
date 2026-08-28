@@ -5,18 +5,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class OrganisationPastProjectUi(
-    val id: String,
-    val title: String,
-    val contributionAmountText: String = ""
-)
-
-data class OrganisationPastProjectsUiState(
-    val isLoading: Boolean = false,
-    val pastProjects: List<OrganisationPastProjectUi> = emptyList(),
-    val errorMessage: String? = null
-)
-
 class OrganisationPastProjectsViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(

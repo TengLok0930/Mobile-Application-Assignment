@@ -6,14 +6,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-data class AdminProfileUiState(
-    val isLoading: Boolean = false,
-    val adminName: String = "Administrator",
-    val appearanceLabel: String = "Dark",
-    val notificationsLabel: String = "On",
-    val errorMessage: String? = null
-)
-
 class AdminProfileViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -26,17 +18,16 @@ class AdminProfileViewModel : ViewModel() {
     )
     val uiState: StateFlow<AdminProfileUiState> = _uiState.asStateFlow()
 
-    fun setAppearanceLabel(isDarkTheme: Boolean) {
-        _uiState.update { current ->
-            current.copy(
-                appearanceLabel = if (isDarkTheme) "Dark" else "Light"
-            )
-        }
-    }
-
     fun onAction(action: AdminProfileAction) {
         when (action) {
-            AdminProfileAction.OnAppearanceClick -> Unit
+            AdminProfileAction.OnAppearanceClick -> {
+                _uiState.update { current ->
+                    current.copy(
+                        appearanceLabel = if (current.appearanceLabel == "Dark") "Light" else "Dark"
+                    )
+                }
+            }
+
             AdminProfileAction.OnNotificationsClick -> {
                 _uiState.update { current ->
                     current.copy(
@@ -44,6 +35,7 @@ class AdminProfileViewModel : ViewModel() {
                     )
                 }
             }
+
             AdminProfileAction.OnChangePasswordClick -> Unit
             AdminProfileAction.OnLogoutClick -> Unit
             AdminProfileAction.OnRequestsClick -> Unit

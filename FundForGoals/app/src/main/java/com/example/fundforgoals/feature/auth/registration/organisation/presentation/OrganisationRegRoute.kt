@@ -1,32 +1,21 @@
 package com.example.fundforgoals.feature.auth.registration.organisation.presentation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun OrganisationRegRoute(
     viewModel: OrganisationRegViewModel,
-    onBackClick: () -> Unit,
-    onLoginClick: () -> Unit,
-    onRegisterSuccess: () -> Unit
+    onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(uiState.isRegisterSuccessful) {
-        if (uiState.isRegisterSuccessful) {
-            onRegisterSuccess()
-            viewModel.onRegisterNavigated()
-        }
-    }
 
     OrganisationRegScreen(
         uiState = uiState,
         onAction = { action ->
             when (action) {
                 OrganisationRegAction.OnBackClick -> onBackClick()
-                OrganisationRegAction.OnLoginClick -> onLoginClick()
                 else -> viewModel.onAction(action)
             }
         }

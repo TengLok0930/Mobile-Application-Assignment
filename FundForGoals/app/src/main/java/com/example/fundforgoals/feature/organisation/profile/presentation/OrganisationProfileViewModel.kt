@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+<<<<<<< Updated upstream
+class OrganisationProfileViewModel : ViewModel() {
+=======
 data class OrganisationContributionUi(
     val id: String,
     val projectTitle: String,
@@ -35,6 +38,7 @@ data class OrganisationProfileUiState(
 class OrganisationProfileViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+>>>>>>> Stashed changes
 
     private val userRepository = UserRepository()
 
@@ -91,6 +95,26 @@ class OrganisationProfileViewModel(
     )
     val uiState: StateFlow<OrganisationProfileUiState> = _uiState.asStateFlow()
 
+<<<<<<< Updated upstream
+    fun onAction(action: OrganisationProfileAction) {
+        when (action) {
+            OrganisationProfileAction.OnAppearanceClick -> {
+                _uiState.update { current ->
+                    current.copy(
+                        appearanceLabel = if (current.appearanceLabel == "Dark") "Light" else "Dark"
+                    )
+                }
+            }
+
+            OrganisationProfileAction.OnNotificationsClick -> {
+                _uiState.update { current ->
+                    current.copy(
+                        notificationsLabel = if (current.notificationsLabel == "On") "Off" else "On"
+                    )
+                }
+            }
+
+=======
     init {
         loadProfile()
     }
@@ -131,6 +155,7 @@ class OrganisationProfileViewModel(
 
     fun onAction(action: OrganisationProfileAction) {
         when (action) {
+>>>>>>> Stashed changes
             OrganisationProfileAction.OnBackClick -> Unit
             OrganisationProfileAction.OnLogoutClick -> Unit
             OrganisationProfileAction.OnMessagesClick -> Unit
