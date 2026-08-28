@@ -1,6 +1,7 @@
 package com.example.fundforgoals.feature.member.profile.presentation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.fundforgoals.core.util.rememberContentType
@@ -12,10 +13,16 @@ fun MemberProfileRoute(
     onMessagesClick: () -> Unit,
     onHomeClick: () -> Unit,
     onViewContributionsClick: () -> Unit,
-    onChangePasswordClick: () -> Unit
+    onAppearanceClick: () -> Unit,
+    onChangePasswordClick: () -> Unit,
+    isDarkTheme: Boolean
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val contentType = rememberContentType()
+
+    LaunchedEffect(isDarkTheme) {
+        viewModel.setDarkMode(isDarkTheme)
+    }
 
     MemberProfileScreen(
         uiState = uiState,
@@ -23,14 +30,11 @@ fun MemberProfileRoute(
         onAction = { action ->
             when (action) {
                 MemberProfileAction.OnLogoutClick -> onLogoutClick()
-<<<<<<< Updated upstream
-                MemberProfileAction.OnMessagesClick -> onMessagesClick(uiState.memberName)
-=======
                 MemberProfileAction.OnMessagesClick -> onMessagesClick()
->>>>>>> Stashed changes
                 MemberProfileAction.OnHomeClick -> onHomeClick()
                 MemberProfileAction.OnViewContributionsClick -> onViewContributionsClick()
                 MemberProfileAction.OnChangePasswordClick -> onChangePasswordClick()
+                MemberProfileAction.OnToggleTheme -> onAppearanceClick()
                 else -> viewModel.onAction(action)
             }
         }

@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 data class UserRequestUiState(
     val isLoading: Boolean = false,
-    val projectRequests: List<UserRequest> = emptyList(),
+    val userRequests: List<UserRequest> = emptyList(),
     val error: String? = null
 )
 
@@ -34,7 +34,7 @@ class UserRequestViewModel : ViewModel() {
             }?.let { userRequests ->
                 _uiState.value = UserRequestUiState(
                     isLoading = false,
-                    projectRequests = userRequests
+                    userRequests = userRequests
                 )
             }
         }
@@ -79,7 +79,7 @@ class UserRequestViewModel : ViewModel() {
 
             _uiState.value = UserRequestUiState(
                 isLoading = false,
-                projectRequests = userRequests
+                userRequests = userRequests
             )
         } catch (exception: Exception) {
             _uiState.value = _uiState.value.copy(

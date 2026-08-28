@@ -10,9 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-<<<<<<< Updated upstream
-class MemberProfileViewModel : ViewModel() {
-=======
 data class MemberContributionUi(
     val id: String,
     val projectTitle: String,
@@ -42,7 +39,6 @@ class MemberProfileViewModel(
 
     private val currentUser: String =
         checkNotNull(savedStateHandle["currentUser"])
->>>>>>> Stashed changes
 
     private val ongoingItems = listOf(
         MemberContributionUi(
@@ -94,8 +90,6 @@ class MemberProfileViewModel(
     )
     val uiState: StateFlow<MemberProfileUiState> = _uiState.asStateFlow()
 
-<<<<<<< Updated upstream
-=======
     init {
         loadProfile()
     }
@@ -134,7 +128,6 @@ class MemberProfileViewModel(
         }
     }
 
->>>>>>> Stashed changes
     fun onAction(action: MemberProfileAction) {
         when (action) {
             MemberProfileAction.OnBackClick -> Unit
@@ -144,16 +137,7 @@ class MemberProfileViewModel(
             MemberProfileAction.OnProfileClick -> Unit
             MemberProfileAction.OnViewContributionsClick -> Unit
             MemberProfileAction.OnChangePasswordClick -> Unit
-<<<<<<< Updated upstream
-
-            MemberProfileAction.OnToggleTheme -> {
-                _uiState.update { current ->
-                    current.copy(isDarkMode = !current.isDarkMode)
-                }
-            }
-=======
             MemberProfileAction.OnToggleTheme -> Unit
->>>>>>> Stashed changes
 
             MemberProfileAction.OnToggleNotifications -> {
                 _uiState.update { current ->

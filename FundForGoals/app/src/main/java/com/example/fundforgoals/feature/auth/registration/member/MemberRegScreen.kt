@@ -1,4 +1,4 @@
-package com.example.fundforgoals.feature.auth.registration.organisation.presentation
+package com.example.fundforgoals.feature.auth.registration.member
 
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
@@ -20,19 +20,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -40,15 +36,15 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fundforgoals.R
+import com.example.fundforgoals.core.ui.components.navigation.BackButton
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import com.example.fundforgoals.core.ui.theme.FundForGoalsTheme
 
 @Composable
-fun OrganisationRegScreen(
-    uiState: OrganisationRegUiState,
-    onAction: (OrganisationRegAction) -> Unit,
+fun MemberRegScreen(
+    uiState: MemberRegUiState,
+    onAction: (MemberRegAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
@@ -85,22 +81,16 @@ fun OrganisationRegScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start
             ) {
-                IconButton(
-                    onClick = { onAction(OrganisationRegAction.OnBackClick) }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.arrow_back_40px),
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                BackButton(
+                    onClick = { onAction(MemberRegAction.OnBackClick) }
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
                 modifier = Modifier.align(Alignment.Start),
-                text = "Create Organisation Account",
+                text = "Create Member Account",
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold
@@ -108,34 +98,30 @@ fun OrganisationRegScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            OrganisationLabeledField(
-                label = "Company Name",
-                value = uiState.companyName,
-                placeholder = "Enter your company name",
+            LabeledField(
+                label = "Username",
+                value = uiState.username,
+                placeholder = "Choose a username",
                 placeholderColor = placeholderColor,
                 colors = textFieldColors,
-                onValueChange = {
-                    onAction(OrganisationRegAction.OnCompanyNameChanged(it))
-                }
+                onValueChange = { onAction(MemberRegAction.OnUsernameChanged(it)) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            OrganisationLabeledField(
-                label = "Public website or company profile URL",
-                value = uiState.companyProfileUrl,
-                placeholder = "Link to your company profile",
+            LabeledField(
+                label = "Social URL",
+                value = uiState.socialUrl,
+                placeholder = "Link to your social profile",
                 placeholderColor = placeholderColor,
                 colors = textFieldColors,
                 keyboardType = KeyboardType.Uri,
-                onValueChange = {
-                    onAction(OrganisationRegAction.OnCompanyProfileUrlChanged(it))
-                }
+                onValueChange = { onAction(MemberRegAction.OnSocialUrlChanged(it)) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            OrganisationLabeledField(
+            LabeledField(
                 label = "Password",
                 value = uiState.password,
                 placeholder = "Create a password",
@@ -143,17 +129,13 @@ fun OrganisationRegScreen(
                 colors = textFieldColors,
                 isPassword = true,
                 isPasswordVisible = uiState.isPasswordVisible,
-                onTogglePasswordVisibility = {
-                    onAction(OrganisationRegAction.OnTogglePasswordVisibility)
-                },
-                onValueChange = {
-                    onAction(OrganisationRegAction.OnPasswordChanged(it))
-                }
+                onTogglePasswordVisibility = { onAction(MemberRegAction.OnTogglePasswordVisibility) },
+                onValueChange = { onAction(MemberRegAction.OnPasswordChanged(it)) }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            OrganisationLabeledField(
+            LabeledField(
                 label = "Confirm Password",
                 value = uiState.confirmPassword,
                 placeholder = "Re-enter your password",
@@ -162,11 +144,9 @@ fun OrganisationRegScreen(
                 isPassword = true,
                 isPasswordVisible = uiState.isConfirmPasswordVisible,
                 onTogglePasswordVisibility = {
-                    onAction(OrganisationRegAction.OnToggleConfirmPasswordVisibility)
+                    onAction(MemberRegAction.OnToggleConfirmPasswordVisibility)
                 },
-                onValueChange = {
-                    onAction(OrganisationRegAction.OnConfirmPasswordChanged(it))
-                }
+                onValueChange = { onAction(MemberRegAction.OnConfirmPasswordChanged(it)) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -182,7 +162,7 @@ fun OrganisationRegScreen(
             }
 
             Button(
-                onClick = { onAction(OrganisationRegAction.OnRegisterClick) },
+                onClick = { onAction(MemberRegAction.OnRegisterClick) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -218,9 +198,7 @@ fun OrganisationRegScreen(
                     fontSize = 15.sp
                 )
                 Text(
-                    modifier = Modifier.clickable {
-                        onAction(OrganisationRegAction.OnLoginClick)
-                    },
+                    modifier = Modifier.clickable { onAction(MemberRegAction.OnLoginClick) },
                     text = "Login",
                     color = accentColor,
                     fontSize = 15.sp,
@@ -234,11 +212,11 @@ fun OrganisationRegScreen(
 }
 
 @Composable
-private fun OrganisationLabeledField(
+private fun LabeledField(
     label: String,
     value: String,
     placeholder: String,
-    placeholderColor: Color,
+    placeholderColor: androidx.compose.ui.graphics.Color,
     colors: androidx.compose.material3.TextFieldColors,
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType = KeyboardType.Text,
@@ -261,10 +239,7 @@ private fun OrganisationLabeledField(
         value = value,
         onValueChange = onValueChange,
         placeholder = {
-            Text(
-                text = placeholder,
-                color = placeholderColor
-            )
+            Text(text = placeholder, color = placeholderColor)
         },
         shape = RoundedCornerShape(24.dp),
         singleLine = true,
@@ -297,10 +272,10 @@ private fun OrganisationLabeledField(
     showBackground = true
 )
 @Composable
-private fun OrganisationRegScreenPreview() {
+private fun MemberRegScreenPreview() {
     FundForGoalsTheme {
-        OrganisationRegScreen(
-            uiState = OrganisationRegUiState(),
+        MemberRegScreen(
+            uiState = MemberRegUiState(),
             onAction = {}
         )
     }
