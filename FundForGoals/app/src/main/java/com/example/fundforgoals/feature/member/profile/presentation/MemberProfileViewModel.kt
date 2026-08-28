@@ -6,6 +6,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+data class MemberContributionUi(
+    val id: String,
+    val projectTitle: String,
+    val organisationName: String,
+    val amountText: String = "",
+    val isOngoing: Boolean = false,
+    val hasECertificate: Boolean = false
+)
+
+data class MemberProfileUiState(
+    val memberName: String = "",
+    val ongoingContributions: List<MemberContributionUi> = emptyList(),
+    val pastContributions: List<MemberContributionUi> = emptyList(),
+    val isDarkMode: Boolean = false,
+    val notificationsEnabled: Boolean = true,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
+)
+
 class MemberProfileViewModel : ViewModel() {
 
     private val ongoingItems = listOf(
@@ -58,6 +77,12 @@ class MemberProfileViewModel : ViewModel() {
     )
     val uiState: StateFlow<MemberProfileUiState> = _uiState.asStateFlow()
 
+    fun setDarkMode(isDarkTheme: Boolean) {
+        _uiState.update { current ->
+            current.copy(isDarkMode = isDarkTheme)
+        }
+    }
+
     fun onAction(action: MemberProfileAction) {
         when (action) {
             MemberProfileAction.OnBackClick -> Unit
@@ -68,11 +93,7 @@ class MemberProfileViewModel : ViewModel() {
             MemberProfileAction.OnViewContributionsClick -> Unit
             MemberProfileAction.OnChangePasswordClick -> Unit
 
-            MemberProfileAction.OnToggleTheme -> {
-                _uiState.update { current ->
-                    current.copy(isDarkMode = !current.isDarkMode)
-                }
-            }
+            MemberProfileAction.OnToggleTheme -> Unit
 
             MemberProfileAction.OnToggleNotifications -> {
                 _uiState.update { current ->

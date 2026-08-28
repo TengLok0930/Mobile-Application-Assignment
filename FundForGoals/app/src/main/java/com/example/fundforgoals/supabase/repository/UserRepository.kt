@@ -15,21 +15,25 @@ class UserRepository {
             .decodeList<User>()
     }
 
-    suspend fun addUser(user: User) {
+    suspend fun addUser(user: User): User {
         val request = CreateUserRequest(
             name = user.name,
             password = user.password,
             socialLink = user.socialLink,
             avatarUrl = user.avatarUrl,
-            userType = user.userType
+            userType = user.userType,
+            isApproved = user.isApproved
         )
 
-        supabase
+        return supabase
             .from("user")
-            .insert(request)
+            .insert(request) {
+                select()
+            }
+            .decodeSingle<User>()
     }
 
-    suspend fun modifyUser(user: User) {
+    suspend fun modifyUser(user: User): User {
         val userId = user.id
             ?: throw IllegalArgumentException("User ID is required for updating")
 
@@ -38,16 +42,19 @@ class UserRepository {
             password = user.password,
             socialLink = user.socialLink,
             avatarUrl = user.avatarUrl,
-            userType = user.userType
+            userType = user.userType,
+            isApproved = user.isApproved
         )
 
-        supabase
+        return supabase
             .from("user")
             .update(request) {
                 filter {
                     eq("id", userId)
                 }
+                select()
             }
+            .decodeSingle<User>()
     }
 
     suspend fun deleteUser(id: Int) {
@@ -82,5 +89,22 @@ class UserRepository {
             }
             .decodeList<User>()
             .firstOrNull()
+    }
+
+    suspend fun updateUserApproval(
+        id: Int,
+        isApproved: Boolean
+    ): User {
+        return supabase
+            .from("user")
+            .update(
+                mapOf("is_approved" to isApproved)
+            ) {
+                filter {
+                    eq("id", id)
+                }
+                select()
+            }
+            .decodeSingle<User>()
     }
 }

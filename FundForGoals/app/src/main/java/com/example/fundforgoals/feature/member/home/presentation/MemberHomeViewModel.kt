@@ -12,6 +12,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+data class MemberHomeUiState(
+    val currentUser: String,
+    val searchQuery: String = "",
+    val selectedFilter: String = "Newest",
+    val projects: List<Project> = emptyList(),
+    val creatorNames: Map<Int, String> = emptyMap(),
+    val selectedProjectId: Int? = null,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
+) {
+    val selectedProject: Project?
+        get() = projects.firstOrNull { it.id == selectedProjectId }
+}
+
 class MemberHomeViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
