@@ -254,7 +254,11 @@ fun AppNavHost(
                 },
                 onChangePasswordClick = {
                     // Add change password destination later
-                }
+                },
+                onAppearanceClick = {
+                    onToggleTheme()
+                },
+                isDarkTheme = isDarkTheme
             )
         }
 
