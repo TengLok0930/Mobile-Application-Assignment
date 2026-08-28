@@ -8,10 +8,11 @@ sealed interface OrganisationProfileAction {
     data object OnHomeClick : OrganisationProfileAction
     data object OnProfileClick : OrganisationProfileAction
 
-    data object OnViewPastProjectsClick : OrganisationProfileAction
     data object OnViewContributionsClick : OrganisationProfileAction
-
-    data object OnAppearanceClick : OrganisationProfileAction
-    data object OnNotificationsClick : OrganisationProfileAction
     data object OnChangePasswordClick : OrganisationProfileAction
+
+    data object OnToggleTheme : OrganisationProfileAction
+    data object OnToggleNotifications : OrganisationProfileAction
+
+    data object Refresh : OrganisationProfileAction
 }

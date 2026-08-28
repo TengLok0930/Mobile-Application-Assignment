@@ -9,22 +9,20 @@ import com.example.fundforgoals.core.util.rememberContentType
 
 @Composable
 fun OrganisationProfileRoute(
-    onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
-    onMessagesClick: (currentUser: String) -> Unit,
+    onMessagesClick: () -> Unit,
     onHomeClick: () -> Unit,
-    onViewPastProjectsClick: () -> Unit,
     onViewContributionsClick: () -> Unit,
     onChangePasswordClick: () -> Unit,
     onAppearanceClick: () -> Unit,
     isDarkTheme: Boolean,
-    viewModel: OrganisationProfileViewModel = viewModel()
+    viewModel: OrganisationProfileViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val contentType = rememberContentType()
 
     LaunchedEffect(isDarkTheme) {
-        viewModel.setAppearanceLabel(isDarkTheme)
+        viewModel.setDarkMode(isDarkTheme)
     }
 
     OrganisationProfileScreen(
@@ -32,14 +30,12 @@ fun OrganisationProfileRoute(
         contentType = contentType,
         onAction = { action ->
             when (action) {
-                OrganisationProfileAction.OnBackClick -> onBackClick()
                 OrganisationProfileAction.OnLogoutClick -> onLogoutClick()
-                OrganisationProfileAction.OnMessagesClick -> { /* existing logic */ }
+                OrganisationProfileAction.OnMessagesClick -> onMessagesClick()
                 OrganisationProfileAction.OnHomeClick -> onHomeClick()
-                OrganisationProfileAction.OnViewPastProjectsClick -> onViewPastProjectsClick()
                 OrganisationProfileAction.OnViewContributionsClick -> onViewContributionsClick()
                 OrganisationProfileAction.OnChangePasswordClick -> onChangePasswordClick()
-                OrganisationProfileAction.OnAppearanceClick -> onAppearanceClick()
+                OrganisationProfileAction.OnToggleTheme -> onAppearanceClick()
                 else -> viewModel.onAction(action)
             }
         }

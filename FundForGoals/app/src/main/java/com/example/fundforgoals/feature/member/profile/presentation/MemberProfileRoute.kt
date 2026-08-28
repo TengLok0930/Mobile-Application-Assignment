@@ -10,7 +10,7 @@ import com.example.fundforgoals.core.util.rememberContentType
 fun MemberProfileRoute(
     viewModel: MemberProfileViewModel,
     onLogoutClick: () -> Unit,
-    onMessagesClick: (currentUser: String) -> Unit,
+    onMessagesClick: () -> Unit,
     onHomeClick: () -> Unit,
     onViewContributionsClick: () -> Unit,
     onAppearanceClick: () -> Unit,
@@ -30,7 +30,7 @@ fun MemberProfileRoute(
         onAction = { action ->
             when (action) {
                 MemberProfileAction.OnLogoutClick -> onLogoutClick()
-                MemberProfileAction.OnMessagesClick -> { /* keep your existing logic */ }
+                MemberProfileAction.OnMessagesClick -> onMessagesClick()
                 MemberProfileAction.OnHomeClick -> onHomeClick()
                 MemberProfileAction.OnViewContributionsClick -> onViewContributionsClick()
                 MemberProfileAction.OnChangePasswordClick -> onChangePasswordClick()

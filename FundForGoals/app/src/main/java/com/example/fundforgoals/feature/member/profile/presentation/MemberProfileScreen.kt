@@ -45,6 +45,7 @@ import com.example.fundforgoals.app.navigation.AppNavigationRail
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import com.example.fundforgoals.core.util.ContentType
+import coil.compose.AsyncImage
 
 @Composable
 fun MemberProfileScreen(
@@ -101,7 +102,7 @@ private fun MemberProfileCompactScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 24.dp, vertical = 16.dp),
-                showContributionHeader = true
+                showContributionHeader = false
             )
         }
     }
@@ -147,7 +148,7 @@ private fun MemberProfileExpandedScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(24.dp),
-                    showContributionHeader = false
+                    showContributionHeader = true
                 )
             }
 
@@ -227,12 +228,13 @@ private fun MemberProfileMainPane(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 MemberProfileHeader(
-                    memberName = uiState.memberName
+                    memberName = uiState.memberName,
+                    memberAvatar = uiState.memberAvatar
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
 
-                if (showContributionHeader) {
+                if (!showContributionHeader) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -368,7 +370,8 @@ private fun MemberProfileContributionPane(
 
 @Composable
 private fun MemberProfileHeader(
-    memberName: String
+    memberName: String,
+    memberAvatar: String
 ) {
     Box(
         modifier = Modifier.fillMaxWidth(),
@@ -388,12 +391,22 @@ private fun MemberProfileHeader(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = memberName.firstOrNull()?.uppercase() ?: "M",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 56.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                if (memberAvatar.isNotBlank()) {
+                    AsyncImage(
+                        model = memberAvatar,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                    )
+                } else {
+                    Text(
+                        text = memberName.firstOrNull()?.uppercase() ?: "M",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 56.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))

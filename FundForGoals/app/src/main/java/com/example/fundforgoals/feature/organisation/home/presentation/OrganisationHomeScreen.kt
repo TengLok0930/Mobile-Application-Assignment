@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fundforgoals.app.navigation.AppBottomBar
 import com.example.fundforgoals.app.navigation.AppNavigationRail
 import com.example.fundforgoals.core.ui.components.input.SearchBar
@@ -437,10 +438,10 @@ private fun ProjectCard(
                     .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = project.title.firstOrNull()?.uppercase() ?: "P",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold
+                AsyncImage(
+                    model = project.avatarUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 

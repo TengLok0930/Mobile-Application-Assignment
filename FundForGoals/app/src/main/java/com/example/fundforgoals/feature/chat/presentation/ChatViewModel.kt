@@ -5,14 +5,51 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fundforgoals.supabase.model.Chat
 import com.example.fundforgoals.supabase.model.Chatroom
+import com.example.fundforgoals.supabase.model.Project
 import com.example.fundforgoals.supabase.repository.ChatRepository
 import com.example.fundforgoals.supabase.repository.ChatroomRepository
+import com.example.fundforgoals.supabase.repository.ProjectRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+data class ChatUiState(
+    val currentUserName: String = "",
+    val currentUserId: Int? = null,
+
+    val chatrooms: List<Chatroom> = emptyList(),
+    val selectedChatroom: Chatroom? = null,
+    val chats: List<Chat> = emptyList(),
+    val userAvatars: Map<Int, String> = emptyMap(),
+    val projectsById: Map<Int, Project> = emptyMap(),
+
+    val searchQuery: String = "",
+    val chatInput: String = "",
+
+    val isLoading: Boolean = false,
+    val isSending: Boolean = false,
+    val errorMessage: String? = null
+) {
+    val filteredChatrooms: List<Chatroom>
+        get() {
+            if (searchQuery.isBlank()) {
+                return chatrooms
+            }
+
+            return chatrooms.filter { chatroom ->
+                val projectTitle = projectsById[chatroom.project]?.title.orEmpty()
+                projectTitle.contains(searchQuery, ignoreCase = true)
+            }
+        }
+
+    val selectedProjectName: String
+        get() = selectedChatroom?.project
+            ?.let { projectsById[it]?.title }
+            .orEmpty()
+}
 
 class ChatViewModel(
     savedStateHandle: SavedStateHandle
@@ -21,6 +58,7 @@ class ChatViewModel(
     private val userRepository = UserRepository()
     private val chatRepository = ChatRepository()
     private val chatroomRepository = ChatroomRepository()
+    private val projectRepository = ProjectRepository()
 
     private val currentUserName: String =
         checkNotNull(savedStateHandle["currentUser"])
@@ -74,12 +112,23 @@ class ChatViewModel(
                     }
                 }
 
+                val projectIds = chatrooms.map { it.project }.distinct()
+
+                val projects = buildMap {
+                    projectIds.forEach { projectId ->
+                        projectRepository.getProjectById(projectId)?.let { project ->
+                            put(projectId, project)
+                        }
+                    }
+                }
+
                 InitialChatData(
                     userId = userId,
                     chatrooms = chatrooms,
                     selectedChatroom = firstChatroom,
                     chats = chats,
-                    avatars = avatars
+                    avatars = avatars,
+                    projects = projects
                 )
             }.onSuccess { data ->
                 _uiState.update {
@@ -89,7 +138,7 @@ class ChatViewModel(
                         selectedChatroom = data.selectedChatroom,
                         chats = data.chats,
                         userAvatars = data.avatars,
-                        project = data.selectedChatroom?.project,
+                        projectsById = data.projects,
                         isLoading = false
                     )
                 }
@@ -122,7 +171,6 @@ class ChatViewModel(
                     it.copy(
                         selectedChatroom = chatroom,
                         chats = chats,
-                        project = chatroom.project,
                         isLoading = false
                     )
                 }
@@ -222,6 +270,7 @@ class ChatViewModel(
         val chatrooms: List<Chatroom>,
         val selectedChatroom: Chatroom?,
         val chats: List<Chat>,
-        val avatars: Map<Int, String>
+        val avatars: Map<Int, String>,
+        val projects: Map<Int, Project>
     )
 }

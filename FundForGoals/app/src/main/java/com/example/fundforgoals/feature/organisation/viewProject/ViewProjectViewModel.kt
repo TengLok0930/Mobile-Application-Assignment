@@ -62,7 +62,7 @@ class ViewProjectViewModel(
             }
 
             try {
-                allProjects = projectRepository.getProjects()
+                allProjects = projectRepository.getOngoingProjects()
 
                 val creatorIds = allProjects
                     .map { it.createdBy }

@@ -1,10 +1,14 @@
 package com.example.fundforgoals.feature.member.profile.presentation
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.fundforgoals.supabase.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 data class MemberContributionUi(
     val id: String,
@@ -16,6 +20,8 @@ data class MemberContributionUi(
 )
 
 data class MemberProfileUiState(
+    val currentUser: String,
+    val memberAvatar: String = "",
     val memberName: String = "",
     val ongoingContributions: List<MemberContributionUi> = emptyList(),
     val pastContributions: List<MemberContributionUi> = emptyList(),
@@ -25,7 +31,14 @@ data class MemberProfileUiState(
     val errorMessage: String? = null
 )
 
-class MemberProfileViewModel : ViewModel() {
+class MemberProfileViewModel(
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
+
+    private val userRepository = UserRepository()
+
+    private val currentUser: String =
+        checkNotNull(savedStateHandle["currentUser"])
 
     private val ongoingItems = listOf(
         MemberContributionUi(
@@ -67,7 +80,7 @@ class MemberProfileViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(
         MemberProfileUiState(
-            memberName = "Member Name",
+            currentUser = currentUser,
             ongoingContributions = ongoingItems,
             pastContributions = pastItems,
             isDarkMode = false,
@@ -76,6 +89,38 @@ class MemberProfileViewModel : ViewModel() {
         )
     )
     val uiState: StateFlow<MemberProfileUiState> = _uiState.asStateFlow()
+
+    init {
+        loadProfile()
+    }
+
+    private fun loadProfile() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(isLoading = true, errorMessage = null)
+            }
+
+            runCatching {
+                userRepository.getUserByUsername(currentUser)
+                    ?: error("User not found")
+            }.onSuccess { user ->
+                _uiState.update {
+                    it.copy(
+                        memberName = user.name,
+                        memberAvatar = user.avatarUrl,
+                        isLoading = false
+                    )
+                }
+            }.onFailure { exception ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = exception.message ?: "Failed to load profile"
+                    )
+                }
+            }
+        }
+    }
 
     fun setDarkMode(isDarkTheme: Boolean) {
         _uiState.update { current ->
@@ -92,7 +137,6 @@ class MemberProfileViewModel : ViewModel() {
             MemberProfileAction.OnProfileClick -> Unit
             MemberProfileAction.OnViewContributionsClick -> Unit
             MemberProfileAction.OnChangePasswordClick -> Unit
-
             MemberProfileAction.OnToggleTheme -> Unit
 
             MemberProfileAction.OnToggleNotifications -> {
@@ -102,12 +146,11 @@ class MemberProfileViewModel : ViewModel() {
             }
 
             MemberProfileAction.Refresh -> {
+                loadProfile()
                 _uiState.update {
                     it.copy(
-                        memberName = "Member Name",
                         ongoingContributions = ongoingItems,
-                        pastContributions = pastItems,
-                        errorMessage = null
+                        pastContributions = pastItems
                     )
                 }
             }
