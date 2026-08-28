@@ -2,6 +2,10 @@ package com.example.fundforgoals.navigation
 
 sealed class AppDestination(val route: String) {
     data object Login : AppDestination("login")
+    data object ForgotPassword : AppDestination("forgot_password")
+    data object ChangePassword : AppDestination("change_password/{currentUser}") {
+        fun createRoute(currentUser: String) = "change_password/$currentUser"
+    }
     data object SignUpChoice : AppDestination("sign_up_choice")
     data object MemberSignUp : AppDestination("member_sign_up")
     data object OrganisationSignUp : AppDestination("organisation_sign_up")

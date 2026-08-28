@@ -44,6 +44,7 @@ import com.example.fundforgoals.core.ui.components.navigation.BackButton
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import com.example.fundforgoals.core.ui.theme.FundForGoalsTheme
+import com.example.fundforgoals.feature.auth.forgotpassword.presentation.ForgotPasswordAction
 import com.example.fundforgoals.feature.auth.registration.member.presentation.MemberRegAction
 import com.example.fundforgoals.feature.auth.registration.organisation.presentation.OrganisationRegAction
 
@@ -87,15 +88,9 @@ fun MemberRegScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start
             ) {
-                IconButton(
+                BackButton(
                     onClick = { onAction(MemberRegAction.OnBackClick) }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.arrow_back_40px),
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
