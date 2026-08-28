@@ -1,7 +1,8 @@
-package com.example.fundforgoals.feature.auth.registration.organisation.presentation
+package com.example.fundforgoals.feature.auth.registration.member
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fundforgoals.feature.auth.registration.member.presentation.MemberRegAction
 import com.example.fundforgoals.supabase.model.User
 import com.example.fundforgoals.supabase.model.UserRequest
 import com.example.fundforgoals.supabase.repository.UserRepository
@@ -12,9 +13,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class OrganisationRegUiState(
-    val companyName: String = "",
-    val companyProfileUrl: String = "",
+data class MemberRegUiState(
+    val username: String = "",
+    val socialUrl: String = "",
     val password: String = "",
     val confirmPassword: String = "",
     val isPasswordVisible: Boolean = false,
@@ -24,43 +25,33 @@ data class OrganisationRegUiState(
     val isRegisterSuccessful: Boolean = false
 ) {
     val isRegisterEnabled: Boolean
-        get() = companyName.isNotBlank() &&
-                companyProfileUrl.isNotBlank() &&
+        get() = username.isNotBlank() &&
+                socialUrl.isNotBlank() &&
                 password.isNotBlank() &&
                 confirmPassword.isNotBlank()
 }
 
-class OrganisationRegViewModel : ViewModel() {
+class MemberRegViewModel : ViewModel() {
 
     private val userRepository = UserRepository()
     private val userRequestRepository = UserRequestRepository()
 
-    private val _uiState = MutableStateFlow(OrganisationRegUiState())
-    val uiState: StateFlow<OrganisationRegUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(MemberRegUiState())
+    val uiState: StateFlow<MemberRegUiState> = _uiState.asStateFlow()
 
-    fun onAction(action: OrganisationRegAction) {
+    fun onAction(action: MemberRegAction) {
         when (action) {
-            is OrganisationRegAction.OnCompanyNameChanged -> {
+            is MemberRegAction.OnUsernameChanged -> {
                 _uiState.update {
                     it.copy(
-                        companyName = action.value,
+                        username = action.value,
                         errorMessage = null,
                         isRegisterSuccessful = false
                     )
                 }
             }
 
-            is OrganisationRegAction.OnCompanyProfileUrlChanged -> {
-                _uiState.update {
-                    it.copy(
-                        companyProfileUrl = action.value,
-                        errorMessage = null,
-                        isRegisterSuccessful = false
-                    )
-                }
-            }
-
-            is OrganisationRegAction.OnPasswordChanged -> {
+            is MemberRegAction.OnPasswordChanged -> {
                 _uiState.update {
                     it.copy(
                         password = action.value,
@@ -70,7 +61,17 @@ class OrganisationRegViewModel : ViewModel() {
                 }
             }
 
-            is OrganisationRegAction.OnConfirmPasswordChanged -> {
+            is MemberRegAction.OnSocialUrlChanged -> {
+                _uiState.update {
+                    it.copy(
+                        socialUrl = action.value,
+                        errorMessage = null,
+                        isRegisterSuccessful = false
+                    )
+                }
+            }
+
+            is MemberRegAction.OnConfirmPasswordChanged -> {
                 _uiState.update {
                     it.copy(
                         confirmPassword = action.value,
@@ -80,24 +81,20 @@ class OrganisationRegViewModel : ViewModel() {
                 }
             }
 
-            OrganisationRegAction.OnTogglePasswordVisibility -> {
-                _uiState.update {
-                    it.copy(isPasswordVisible = !it.isPasswordVisible)
-                }
+            MemberRegAction.OnTogglePasswordVisibility -> {
+                _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
             }
 
-            OrganisationRegAction.OnToggleConfirmPasswordVisibility -> {
-                _uiState.update {
-                    it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible)
-                }
+            MemberRegAction.OnToggleConfirmPasswordVisibility -> {
+                _uiState.update { it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) }
             }
 
-            OrganisationRegAction.OnRegisterClick -> {
+            MemberRegAction.OnRegisterClick -> {
                 register()
             }
 
-            OrganisationRegAction.OnLoginClick -> Unit
-            OrganisationRegAction.OnBackClick -> Unit
+            MemberRegAction.OnLoginClick -> Unit
+            MemberRegAction.OnBackClick -> Unit
         }
     }
 
@@ -106,11 +103,12 @@ class OrganisationRegViewModel : ViewModel() {
 
         val currentState = _uiState.value
         val normalizedState = currentState.copy(
-            companyName = currentState.companyName.trim(),
-            companyProfileUrl = currentState.companyProfileUrl.trim()
+            username = currentState.username.trim(),
+            socialUrl = currentState.socialUrl.trim()
         )
 
         val validationError = validate(normalizedState)
+
         if (validationError != null) {
             _uiState.update {
                 it.copy(
@@ -121,8 +119,8 @@ class OrganisationRegViewModel : ViewModel() {
             return
         }
 
-        val companyName = normalizedState.companyName
-        val companyProfileUrl = normalizedState.companyProfileUrl
+        val username = normalizedState.username
+        val socialUrl = normalizedState.socialUrl
 
         viewModelScope.launch {
             _uiState.update {
@@ -134,12 +132,12 @@ class OrganisationRegViewModel : ViewModel() {
             }
 
             try {
-                val existingUser = userRepository.getUserByUsername(companyName)
+                val existingUser = userRepository.getUserByUsername(username)
                 if (existingUser != null) {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "Organisation name already exists.",
+                            errorMessage = "Username already exists.",
                             isRegisterSuccessful = false
                         )
                     }
@@ -148,27 +146,27 @@ class OrganisationRegViewModel : ViewModel() {
 
                 val createdUser = userRepository.addUser(
                     User(
-                        name = companyName,
-                        password = normalizedState.password,
-                        socialLink = companyProfileUrl,
+                        name = username,
+                        password = currentState.password,
+                        socialLink = socialUrl,
                         avatarUrl = "",
-                        userType = "ORGANISATION",
+                        userType = "MEMBER",
                         isApproved = false
                     )
                 )
 
                 val requestDetails = """
-                    Organisation Name: ${createdUser.name}
-                    Company Profile URL: ${createdUser.socialLink}
-                """.trimIndent()
+                Username: ${createdUser.name}
+                Social URL: ${createdUser.socialLink}
+            """.trimIndent()
 
                 userRequestRepository.addUserRequest(
                     UserRequest(
                         id = null,
                         createdAt = "",
                         userId = createdUser.id
-                            ?: throw IllegalStateException("Created organisation ID is missing."),
-                        requestType = "ORGANISATION_REGISTRATION",
+                            ?: throw IllegalStateException("Created user ID is missing."),
+                        requestType = "MEMBER_REGISTRATION",
                         details = requestDetails,
                         aiOverview = null,
                         status = "pending",
@@ -181,8 +179,8 @@ class OrganisationRegViewModel : ViewModel() {
                         isLoading = false,
                         isRegisterSuccessful = true,
                         errorMessage = null,
-                        companyName = "",
-                        companyProfileUrl = "",
+                        username = "",
+                        socialUrl = "",
                         password = "",
                         confirmPassword = ""
                     )
@@ -191,7 +189,7 @@ class OrganisationRegViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = e.message ?: "Failed to submit organisation registration request.",
+                        errorMessage = e.message ?: "Failed to submit registration request.",
                         isRegisterSuccessful = false
                     )
                 }
@@ -199,12 +197,11 @@ class OrganisationRegViewModel : ViewModel() {
         }
     }
 
-    private fun validate(state: OrganisationRegUiState): String? {
+    private fun validate(state: MemberRegUiState): String? {
         return when {
             !state.isRegisterEnabled -> "All fields are required."
-            !state.companyProfileUrl.startsWith("http://") &&
-                    !state.companyProfileUrl.startsWith("https://") ->
-                "Please enter a valid company profile URL."
+            !state.socialUrl.startsWith("http://") && !state.socialUrl.startsWith("https://") ->
+                "Please enter a valid social URL."
             state.password.length < 6 -> "Password must be at least 6 characters."
             state.password != state.confirmPassword -> "Passwords do not match."
             else -> null
@@ -212,8 +209,6 @@ class OrganisationRegViewModel : ViewModel() {
     }
 
     fun onRegisterNavigated() {
-        _uiState.update {
-            it.copy(isRegisterSuccessful = false)
-        }
+        _uiState.update { it.copy(isRegisterSuccessful = false) }
     }
 }

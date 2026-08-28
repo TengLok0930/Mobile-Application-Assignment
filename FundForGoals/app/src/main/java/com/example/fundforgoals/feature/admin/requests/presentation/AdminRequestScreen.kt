@@ -1,5 +1,7 @@
 package com.example.fundforgoals.feature.admin.requests.presentation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -13,16 +15,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -39,6 +44,9 @@ import com.example.fundforgoals.app.navigation.AdminNavigationRail
 import com.example.fundforgoals.core.ui.components.navigation.BackButton
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun AdminRequestScreen(
@@ -220,7 +228,9 @@ private fun AdminRequestCompactDetailScreen(
             RequestDetailPane(
                 request = uiState.selectedRequest,
                 showBack = true,
+                isLoading = uiState.isLoading,
                 onBackClick = { onAction(AdminRequestAction.OnBackFromDetailClick) },
+                onGenerateAiOverviewClick = { onAction(AdminRequestAction.OnGenerateAiOverviewClick) },
                 onAcceptClick = { onAction(AdminRequestAction.OnAcceptRequestClick) },
                 onRejectClick = { onAction(AdminRequestAction.OnRejectRequestClick) },
                 modifier = Modifier
@@ -267,27 +277,59 @@ private fun AdminRequestExpandedScreen(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Incoming requests",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                when {
+                    uiState.isLoading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Loading requests...",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    uiState.errorMessage != null -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(20.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = uiState.errorMessage,
+                                color = MaterialTheme.colorScheme.error,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
 
-                    IncomingCategoryList(
-                        categories = uiState.categories,
-                        onCategoryClick = { type ->
-                            onAction(AdminRequestAction.OnCategoryClick(type))
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    else -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = "Incoming requests",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            IncomingCategoryList(
+                                categories = uiState.categories,
+                                onCategoryClick = { type ->
+                                    onAction(AdminRequestAction.OnCategoryClick(type))
+                                },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
                 }
             }
 
@@ -333,8 +375,12 @@ private fun AdminRequestExpandedScreen(
                         RequestDetailPane(
                             request = uiState.selectedRequest,
                             showBack = true,
+                            isLoading = uiState.isLoading,
                             onBackClick = {
                                 onAction(AdminRequestAction.OnBackFromDetailClick)
+                            },
+                            onGenerateAiOverviewClick = {
+                                onAction(AdminRequestAction.OnGenerateAiOverviewClick)
                             },
                             onAcceptClick = {
                                 onAction(AdminRequestAction.OnAcceptRequestClick)
@@ -408,7 +454,7 @@ private fun CategoryCard(
                 text = if (category.count > 0) {
                     "Incoming (${category.count})"
                 } else {
-                    "Incoming"
+                    "No Requests"
                 },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 16.sp
@@ -530,7 +576,7 @@ private fun RequestCard(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = request.username.firstOrNull()?.uppercase() ?: "R",
+                    text = request.title.firstOrNull()?.uppercase() ?: "R",
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp
@@ -543,20 +589,22 @@ private fun RequestCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = request.username,
+                    text = request.title,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                request.subtitle?.let {
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = request.subtitle,
-                    color = BrandAccentLight,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                    Text(
+                        text = it,
+                        color = BrandAccentLight,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }
@@ -566,116 +614,159 @@ private fun RequestCard(
 private fun RequestDetailPane(
     request: AdminRequestItemUi?,
     showBack: Boolean,
+    isLoading: Boolean,
     onBackClick: () -> Unit,
+    onGenerateAiOverviewClick: () -> Unit,
     onAcceptClick: () -> Unit,
     onRejectClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val accentColor = if (isSystemInDarkTheme()) {
-        BrandAccentDark
-    } else {
-        BrandAccentLight
-    }
-
     if (request == null) {
         Box(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Select a request",
+                text = "Select a request to view details.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 18.sp
             )
         }
-    } else {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        return
+    }
+
+    val accentColor = if (isSystemInDarkTheme()) BrandAccentDark else BrandAccentLight
+    val formattedStatus = request.status.replaceFirstChar { it.uppercase() }
+    val hasGeneratedOverview = request.hasAiOverview
+
+    Column(
+        modifier = modifier
+            .padding(20.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        if (showBack) {
+            BackButton(onClick = onBackClick)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        Text(
+            text = request.title,
+            color = accentColor,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "Status: $formattedStatus",
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Created at: ${formatRequestDate(request.createdAt)}",
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 16.sp
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Details",
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = request.details,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 16.sp
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "AI summary",
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = request.aiSummary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 16.sp
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onGenerateAiOverviewClick,
+            enabled = !hasGeneratedOverview && !isLoading,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = accentColor,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (showBack) {
-                    BackButton(onClick = onBackClick)
-                    Spacer(modifier = Modifier.width(12.dp))
-                }
-
-                Column {
-                    Text(
-                        text = request.username,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
+            if (isLoading) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
                     )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = request.subtitle,
-                        color = accentColor,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Generating overview...")
                 }
-            }
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            } else {
                 Text(
-                    text = "AI summary",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = request.aiSummary,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 16.sp,
-                    lineHeight = 24.sp
+                    text = if (hasGeneratedOverview) {
+                        "AI Overview Generated"
+                    } else {
+                        "Generate AI Overview"
+                    }
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Button(
-                    onClick = onAcceptClick,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text(
-                        text = "Accept",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+        Button(
+            onClick = onAcceptClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text("Approve")
+        }
 
-                Button(
-                    onClick = onRejectClick,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                ) {
-                    Text(
-                        text = "Reject",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = onRejectClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            )
+        ) {
+            Text("Reject")
         }
     }
 }
@@ -685,5 +776,17 @@ private fun AdminRequestType.toCategoryTitle(): String {
         AdminRequestType.USER -> "New user requests"
         AdminRequestType.ORGANISATION -> "New organisation requests"
         AdminRequestType.PROJECT -> "New project requests"
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun formatRequestDate(date: String): String {
+    return try {
+        val parsed = OffsetDateTime.parse(date)
+        parsed.format(
+            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
+        )
+    } catch (e: Exception) {
+        date
     }
 }

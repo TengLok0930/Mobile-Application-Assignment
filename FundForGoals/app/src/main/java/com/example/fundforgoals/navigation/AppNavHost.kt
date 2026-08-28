@@ -1,7 +1,9 @@
 package com.example.fundforgoals.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -9,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.fundforgoals.core.session.SessionManager
 import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeRoute
 import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeViewModel
 import com.example.fundforgoals.feature.admin.monitor_detail.presentation.AdminMonitorDetailRoute
@@ -44,11 +47,36 @@ import com.example.fundforgoals.feature.organisation.viewProject.ViewProjectView
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    isDarkTheme: Boolean,
+    onToggleTheme: () -> Unit
 ) {
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
+
+    val savedUsername = sessionManager.getUsername().orEmpty()
+    val savedUserType = sessionManager.getUserType().orEmpty()
+
+    val startDestination = when {
+        !sessionManager.isLoggedIn() -> AppDestination.Login.route
+
+        savedUserType.equals("admin", ignoreCase = true) ->
+            AppDestination.AdminHome.route
+
+        savedUserType.equals("organisation", ignoreCase = true) &&
+                savedUsername.isNotBlank() ->
+            AppDestination.OrganisationHome.createRoute(savedUsername)
+
+        savedUserType.equals("member", ignoreCase = true) &&
+                savedUsername.isNotBlank() ->
+            AppDestination.MemberHome.createRoute(savedUsername)
+
+        else -> AppDestination.Login.route
+    }
+
     NavHost(
         navController = navController,
-        startDestination = AppDestination.Login.route,
+        startDestination = startDestination,
         modifier = modifier
     ) {
         composable(route = AppDestination.Login.route) {
@@ -65,6 +93,11 @@ fun AppNavHost(
                     }
                 },
                 onLoginSuccess = { username, userType ->
+                    sessionManager.saveLoginSession(
+                        username = username,
+                        userType = userType
+                    )
+
                     val destination = when {
                         userType.trim().equals("admin", ignoreCase = true) ->
                             AppDestination.AdminHome.route
@@ -77,7 +110,7 @@ fun AppNavHost(
 
                     if (destination != "") {
                         navController.navigate(destination) {
-                            popUpTo(AppDestination.Login.route) {
+                            popUpTo(navController.graph.id) {
                                 inclusive = true
                             }
                             launchSingleTop = true
@@ -132,6 +165,19 @@ fun AppNavHost(
                 viewModel = viewModel<OrganisationRegViewModel>(),
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onLoginClick = {
+                    navController.navigate(AppDestination.Login.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onRegisterSuccess = {
+                    navController.navigate(AppDestination.Login.route) {
+                        popUpTo(AppDestination.Login.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -179,8 +225,9 @@ fun AppNavHost(
                 viewModel = viewModel<MemberProfileViewModel>(),
                 isDarkTheme = isDarkTheme,
                 onLogoutClick = {
+                    sessionManager.clearSession()
                     navController.navigate(AppDestination.Login.route) {
-                        popUpTo(AppDestination.Login.route) {
+                        popUpTo(navController.graph.id) {
                             inclusive = true
                         }
                         launchSingleTop = true
@@ -192,15 +239,8 @@ fun AppNavHost(
                     }
                 },
                 onHomeClick = {
-<<<<<<< Updated upstream
-                    navController.navigate(AppDestination.MemberHome.route) {
-                        popUpTo(AppDestination.MemberHome.route) {
-                            inclusive = false
-                        }
-=======
                     navController.navigate(AppDestination.MemberHome.createRoute(currentUser)) {
                         popUpTo(AppDestination.MemberHome.route) { inclusive = false }
->>>>>>> Stashed changes
                         launchSingleTop = true
                     }
                 },
@@ -209,12 +249,9 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-<<<<<<< Updated upstream
-=======
                 onAppearanceClick = {
                     onToggleTheme()
                 },
->>>>>>> Stashed changes
                 onChangePasswordClick = {
                     // Add change password destination later
                 }
@@ -232,7 +269,8 @@ fun AppNavHost(
                     }
                 },
                 onHomeClick = {
-                    navController.navigate(AppDestination.MemberHome.route) {
+                    val currentUser = sessionManager.getUsername().orEmpty()
+                    navController.navigate(AppDestination.MemberHome.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
@@ -333,8 +371,9 @@ fun AppNavHost(
             OrganisationProfileRoute(
                 viewModel = viewModel<OrganisationProfileViewModel> (),
                 onLogoutClick = {
+                    sessionManager.clearSession()
                     navController.navigate(AppDestination.Login.route) {
-                        popUpTo(AppDestination.Login.route) {
+                        popUpTo(navController.graph.id) {
                             inclusive = true
                         }
                         launchSingleTop = true
@@ -346,24 +385,12 @@ fun AppNavHost(
                     }
                 },
                 onHomeClick = {
-<<<<<<< Updated upstream
-                    navController.navigate(AppDestination.OrganisationHome.route) {
-                        popUpTo(AppDestination.OrganisationHome.route) {
-                            inclusive = false
-                        }
-                        launchSingleTop = true
-                    }
-                },
-                onViewPastProjectsClick = {
-                    navController.navigate(AppDestination.OrganisationPastProjects.route) {
-=======
                     navController.navigate(
                         AppDestination.OrganisationHome.createRoute(currentUser)
                     ) {
                         popUpTo(AppDestination.OrganisationHome.route) {
                             inclusive = false
                         }
->>>>>>> Stashed changes
                         launchSingleTop = true
                     }
                 },
@@ -374,7 +401,11 @@ fun AppNavHost(
                 },
                 onChangePasswordClick = {
                     // Add change password screen later
-                }
+                },
+                onAppearanceClick = {
+                    onToggleTheme()
+                },
+                isDarkTheme = isDarkTheme
             )
         }
 
@@ -389,10 +420,8 @@ fun AppNavHost(
                     }
                 },
                 onHomeClick = {
-                    navController.navigate(AppDestination.OrganisationHome.route) {
-                        popUpTo(AppDestination.OrganisationHome.route) {
-                            inclusive = false
-                        }
+                    val currentUser = sessionManager.getUsername().orEmpty()
+                    navController.navigate(AppDestination.OrganisationHome.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
@@ -499,8 +528,9 @@ fun AppNavHost(
         composable(route = AppDestination.AdminProfile.route) {
             AdminProfileRoute(
                 onLogoutClick = {
+                    sessionManager.clearSession()
                     navController.navigate(AppDestination.Login.route) {
-                        popUpTo(AppDestination.Login.route) {
+                        popUpTo(navController.graph.id) {
                             inclusive = true
                         }
                         launchSingleTop = true
@@ -522,9 +552,11 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onChangePasswordClick = {
-                    // Add change password navigation later
-                }
+                onChangePasswordClick = {},
+                onAppearanceClick = {
+                    onToggleTheme()
+                },
+                isDarkTheme = isDarkTheme
             )
         }
 
