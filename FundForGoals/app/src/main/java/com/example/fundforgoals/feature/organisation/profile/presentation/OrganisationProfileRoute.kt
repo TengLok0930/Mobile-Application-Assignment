@@ -8,30 +8,47 @@ import com.example.fundforgoals.core.util.rememberContentType
 
 @Composable
 fun OrganisationProfileRoute(
-    onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
-    onMessagesClick: (currentUser: String) -> Unit,
+    onMessagesClick: () -> Unit,
     onHomeClick: () -> Unit,
-    onViewPastProjectsClick: () -> Unit,
     onViewContributionsClick: () -> Unit,
     onChangePasswordClick: () -> Unit,
+<<<<<<< Updated upstream
     viewModel: OrganisationProfileViewModel = viewModel()
+=======
+    onAppearanceClick: () -> Unit,
+    isDarkTheme: Boolean,
+    viewModel: OrganisationProfileViewModel
+>>>>>>> Stashed changes
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val contentType = rememberContentType()
 
+<<<<<<< Updated upstream
+=======
+    LaunchedEffect(isDarkTheme) {
+        viewModel.setDarkMode(isDarkTheme)
+    }
+
+>>>>>>> Stashed changes
     OrganisationProfileScreen(
         uiState = uiState,
         contentType = contentType,
         onAction = { action ->
             when (action) {
-                OrganisationProfileAction.OnBackClick -> onBackClick()
                 OrganisationProfileAction.OnLogoutClick -> onLogoutClick()
+<<<<<<< Updated upstream
                 OrganisationProfileAction.OnMessagesClick -> onMessagesClick(uiState.organisationName)
+=======
+                OrganisationProfileAction.OnMessagesClick -> onMessagesClick()
+>>>>>>> Stashed changes
                 OrganisationProfileAction.OnHomeClick -> onHomeClick()
-                OrganisationProfileAction.OnViewPastProjectsClick -> onViewPastProjectsClick()
                 OrganisationProfileAction.OnViewContributionsClick -> onViewContributionsClick()
                 OrganisationProfileAction.OnChangePasswordClick -> onChangePasswordClick()
+<<<<<<< Updated upstream
+=======
+                OrganisationProfileAction.OnToggleTheme -> onAppearanceClick()
+>>>>>>> Stashed changes
                 else -> viewModel.onAction(action)
             }
         }

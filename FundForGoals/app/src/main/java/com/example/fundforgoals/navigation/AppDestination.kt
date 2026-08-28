@@ -9,9 +9,13 @@ sealed class AppDestination(val route: String) {
     data object MemberHome : AppDestination("member_home/{currentUser}") {
         fun createRoute(currentUser: String) = "member_home/$currentUser"
     }
-    data object MemberProfile : AppDestination("member_profile")
+    data object MemberProfile : AppDestination("member_profile/{currentUser}") {
+        fun createRoute(currentUser: String) = "member_profile/$currentUser"
+    }
     data object MemberContributions : AppDestination("member_contributions")
-    object OrganisationProfile : AppDestination("organisation_profile")
+    object OrganisationProfile : AppDestination("organisation_profile/{currentUser}")  {
+        fun createRoute(currentUser: String) = "organisation_profile/$currentUser"
+    }
     object OrganisationHome : AppDestination("organisation_home/{currentUser}") {
         fun createRoute(currentUser: String) = "organisation_home/$currentUser"
     }

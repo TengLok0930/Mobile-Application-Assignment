@@ -1,5 +1,6 @@
 package com.example.fundforgoals.feature.organisation.profile.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,12 +43,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fundforgoals.R
 import com.example.fundforgoals.app.navigation.AppBottomBar
 import com.example.fundforgoals.app.navigation.AppNavigationRail
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import com.example.fundforgoals.core.util.ContentType
+import com.example.fundforgoals.feature.member.contributions.presentation.MemberContributionUi
+import com.example.fundforgoals.feature.member.profile.presentation.MemberProfileAction
 
 @Composable
 fun OrganisationProfileScreen(
@@ -100,13 +106,13 @@ private fun OrganisationProfileCompactScreen(
                 .padding(innerPadding),
             color = MaterialTheme.colorScheme.background
         ) {
-            OrganisationProfileContent(
+            OrganisationProfileMainPane(
                 uiState = uiState,
                 onAction = onAction,
-                showBackButton = true,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                showContributionHeader = false
             )
         }
     }
@@ -146,13 +152,30 @@ private fun OrganisationProfileExpandedScreen(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
-                OrganisationProfileContent(
+                OrganisationProfileMainPane(
                     uiState = uiState,
                     onAction = onAction,
-                    showBackButton = true,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp)
+                        .padding(24.dp),
+                    showContributionHeader = true
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                OrganisationProfileContributionPane(
+                    uiState = uiState,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }
@@ -160,10 +183,10 @@ private fun OrganisationProfileExpandedScreen(
 }
 
 @Composable
-private fun OrganisationProfileContent(
+private fun OrganisationProfileMainPane(
     uiState: OrganisationProfileUiState,
     onAction: (OrganisationProfileAction) -> Unit,
-    showBackButton: Boolean,
+    showContributionHeader: Boolean,
     modifier: Modifier = Modifier
 ) {
     val accentColor = if (isSystemInDarkTheme()) BrandAccentDark else BrandAccentLight
@@ -199,23 +222,8 @@ private fun OrganisationProfileContent(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    if (showBackButton) {
-                        IconButton(
-                            onClick = { onAction(OrganisationProfileAction.OnBackClick) }
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.arrow_back_40px),
-                                contentDescription = "Back"
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
                     TextButton(
                         onClick = { onAction(OrganisationProfileAction.OnLogoutClick) }
                     ) {
@@ -231,41 +239,52 @@ private fun OrganisationProfileContent(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OrganisationProfileHeader(
-                    organisationName = uiState.organisationName
+                    organisationName = uiState.organisationName,
+                    organisationAvatar = uiState.organisationAvatar
                 )
 
                 Spacer(modifier = Modifier.height(48.dp))
 
-                OrganisationLinkRow(
-                    title = "Past Projects",
-                    actionText = "View >>",
-                    accentColor = accentColor,
-                    onClick = { onAction(OrganisationProfileAction.OnViewPastProjectsClick) }
-                )
+                if (!showContributionHeader) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Contributions",
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Medium
+                        )
 
-                Spacer(modifier = Modifier.height(28.dp))
+                        TextButton(
+                            onClick = { onAction(OrganisationProfileAction.OnViewContributionsClick) }
+                        ) {
+                            Text(
+                                text = "View >>",
+                                color = accentColor,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
 
-                OrganisationLinkRow(
-                    title = "Contributions",
-                    actionText = "View >>",
-                    accentColor = accentColor,
-                    onClick = { onAction(OrganisationProfileAction.OnViewContributionsClick) }
-                )
-
-                Spacer(modifier = Modifier.height(28.dp))
+                    Spacer(modifier = Modifier.height(28.dp))
+                }
 
                 OrganisationSettingRow(
                     title = "Appearance",
-                    value = uiState.appearanceLabel,
-                    onClick = { onAction(OrganisationProfileAction.OnAppearanceClick) }
+                    value = if (uiState.isDarkMode) "Dark" else "Light",
+                    onClick = { onAction(OrganisationProfileAction.OnToggleTheme) }
                 )
 
                 Spacer(modifier = Modifier.height(28.dp))
 
                 OrganisationSettingRow(
                     title = "Notifications",
-                    value = uiState.notificationsLabel,
-                    onClick = { onAction(OrganisationProfileAction.OnNotificationsClick) }
+                    value = if (uiState.notificationsEnabled) "On" else "Off",
+                    onClick = { onAction(OrganisationProfileAction.OnToggleNotifications) }
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
@@ -282,8 +301,6 @@ private fun OrganisationProfileContent(
                         textDecoration = TextDecoration.Underline
                     )
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
@@ -291,7 +308,8 @@ private fun OrganisationProfileContent(
 
 @Composable
 private fun OrganisationProfileHeader(
-    organisationName: String
+    organisationName: String,
+    organisationAvatar: String
 ) {
     Box(
         modifier = Modifier.fillMaxWidth(),
@@ -311,12 +329,22 @@ private fun OrganisationProfileHeader(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = organisationName.firstOrNull()?.uppercase() ?: "O",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 56.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                if (organisationAvatar.isNotBlank()) {
+                    AsyncImage(
+                        model = organisationAvatar,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                    )
+                } else {
+                    Text(
+                        text = organisationName.firstOrNull()?.uppercase() ?: "O",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 56.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -325,36 +353,6 @@ private fun OrganisationProfileHeader(
                 text = organisationName,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 28.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-    }
-}
-
-@Composable
-private fun OrganisationLinkRow(
-    title: String,
-    actionText: String,
-    accentColor: androidx.compose.ui.graphics.Color,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Medium
-        )
-
-        TextButton(onClick = onClick) {
-            Text(
-                text = actionText,
-                color = accentColor,
-                fontSize = 20.sp,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -392,6 +390,152 @@ private fun OrganisationSettingRow(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium
             )
+        }
+    }
+}
+
+@Composable
+private fun OrganisationProfileContributionPane(
+    uiState: OrganisationProfileUiState,
+    modifier: Modifier = Modifier
+) {
+    when {
+        uiState.isLoading -> {
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Loading...")
+            }
+        }
+
+        uiState.errorMessage != null -> {
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = uiState.errorMessage,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+
+        else -> {
+            LazyColumn(
+                modifier = modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Text(
+                        text = "Contributions",
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                item {
+                    Text(
+                        text = "Ongoing",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                items(uiState.ongoingContributions) { contribution ->
+                    OrganisationContributionCard(contribution = contribution)
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Past",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                items(uiState.pastContributions) { contribution ->
+                    OrganisationContributionCard(contribution = contribution)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrganisationContributionCard(
+    contribution: OrganisationContributionUi
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = contribution.projectTitle.take(1),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = contribution.projectTitle,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Text(
+                    text = contribution.organisationName,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (contribution.isOngoing) {
+                    Text(
+                        text = "Contributed ${contribution.amountText}",
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                } else if (contribution.hasECertificate) {
+                    Text(
+                        text = "View e-cert",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 }

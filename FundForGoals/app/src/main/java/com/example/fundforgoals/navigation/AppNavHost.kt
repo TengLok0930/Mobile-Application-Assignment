@@ -37,6 +37,7 @@ import com.example.fundforgoals.feature.organisation.home.presentation.Organisat
 import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeViewModel
 import com.example.fundforgoals.feature.organisation.pastprojects.presentation.OrganisationPastProjectsRoute
 import com.example.fundforgoals.feature.organisation.profile.presentation.OrganisationProfileRoute
+import com.example.fundforgoals.feature.organisation.profile.presentation.OrganisationProfileViewModel
 import com.example.fundforgoals.feature.organisation.viewProject.ViewProjectRoute
 import com.example.fundforgoals.feature.organisation.viewProject.ViewProjectViewModel
 
@@ -151,22 +152,32 @@ fun AppNavHost(
                         AppDestination.MemberProjectDetail.createRoute(projectId)
                     )
                 },
-                onMessagesClick = { currentUser ->
+                onMessagesClick = {
                     navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
                 onProfileClick = {
-                    navController.navigate(AppDestination.MemberProfile.route) {
+                    navController.navigate(
+                        AppDestination.MemberProfile.createRoute(currentUser)
+                    ) {
                         launchSingleTop = true
                     }
                 }
             )
         }
 
-        composable(route = AppDestination.MemberProfile.route) {
+        composable(
+            route = AppDestination.MemberProfile.route,
+            arguments = listOf(
+                navArgument("currentUser") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentUser = backStackEntry.arguments?.getString("currentUser") ?: return@composable
+
             MemberProfileRoute(
                 viewModel = viewModel<MemberProfileViewModel>(),
+                isDarkTheme = isDarkTheme,
                 onLogoutClick = {
                     navController.navigate(AppDestination.Login.route) {
                         popUpTo(AppDestination.Login.route) {
@@ -175,16 +186,21 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onMessagesClick = { currentUser ->
+                onMessagesClick = {
                     navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
                 onHomeClick = {
+<<<<<<< Updated upstream
                     navController.navigate(AppDestination.MemberHome.route) {
                         popUpTo(AppDestination.MemberHome.route) {
                             inclusive = false
                         }
+=======
+                    navController.navigate(AppDestination.MemberHome.createRoute(currentUser)) {
+                        popUpTo(AppDestination.MemberHome.route) { inclusive = false }
+>>>>>>> Stashed changes
                         launchSingleTop = true
                     }
                 },
@@ -193,6 +209,12 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
+<<<<<<< Updated upstream
+=======
+                onAppearanceClick = {
+                    onToggleTheme()
+                },
+>>>>>>> Stashed changes
                 onChangePasswordClick = {
                     // Add change password destination later
                 }
@@ -246,13 +268,15 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onMessagesClick = { currentUser ->
+                onMessagesClick = {
                     navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
                 onProfileClick = {
-                    navController.navigate(AppDestination.OrganisationProfile.route) {
+                    navController.navigate(
+                        AppDestination.OrganisationProfile.createRoute(currentUser)
+                    ) {
                         launchSingleTop = true
                     }
                 }
@@ -283,24 +307,31 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onMessagesClick = { currentUser ->
+                onMessagesClick = {
                     navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
                 onProfileClick = {
-                    navController.navigate(AppDestination.OrganisationProfile.route) {
+                    navController.navigate(
+                        AppDestination.OrganisationProfile.createRoute(currentUser)
+                    ) {
                         launchSingleTop = true
                     }
                 }
             )
         }
 
-        composable(route = AppDestination.OrganisationProfile.route) {
+        composable(
+            route = AppDestination.OrganisationProfile.route,
+            arguments = listOf(
+                navArgument("currentUser") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentUser = backStackEntry.arguments?.getString("currentUser") ?: return@composable
+
             OrganisationProfileRoute(
-                onBackClick = {
-                    navController.popBackStack()
-                },
+                viewModel = viewModel<OrganisationProfileViewModel> (),
                 onLogoutClick = {
                     navController.navigate(AppDestination.Login.route) {
                         popUpTo(AppDestination.Login.route) {
@@ -309,12 +340,13 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onMessagesClick = { currentUser ->
+                onMessagesClick = {
                     navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
                         launchSingleTop = true
                     }
                 },
                 onHomeClick = {
+<<<<<<< Updated upstream
                     navController.navigate(AppDestination.OrganisationHome.route) {
                         popUpTo(AppDestination.OrganisationHome.route) {
                             inclusive = false
@@ -324,6 +356,14 @@ fun AppNavHost(
                 },
                 onViewPastProjectsClick = {
                     navController.navigate(AppDestination.OrganisationPastProjects.route) {
+=======
+                    navController.navigate(
+                        AppDestination.OrganisationHome.createRoute(currentUser)
+                    ) {
+                        popUpTo(AppDestination.OrganisationHome.route) {
+                            inclusive = false
+                        }
+>>>>>>> Stashed changes
                         launchSingleTop = true
                     }
                 },
@@ -498,7 +538,12 @@ fun AppNavHost(
         ) {
             ChatRoute(
                 viewModel = viewModel<ChatViewModel>(),
-                onBackClick = { navController.popBackStack() }
+                onHomeClick = {
+                    navController.popBackStack()
+                },
+                onProfileClick = {
+                    navController.popBackStack()
+                }
             )
         }
 

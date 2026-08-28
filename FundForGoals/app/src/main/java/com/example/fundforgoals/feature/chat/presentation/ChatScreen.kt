@@ -1,5 +1,6 @@
 package com.example.fundforgoals.feature.chat.presentation
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -33,50 +34,167 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fundforgoals.R
+import com.example.fundforgoals.app.navigation.AppBottomBar
+import com.example.fundforgoals.app.navigation.AppNavigationRail
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
-import android.content.res.Configuration
-import androidx.compose.ui.platform.LocalConfiguration
+import com.example.fundforgoals.core.ui.theme.FundForGoalsTheme
 import com.example.fundforgoals.supabase.model.Chat
 import com.example.fundforgoals.supabase.model.Chatroom
-import coil.compose.AsyncImage
+import com.example.fundforgoals.supabase.model.Project
 
 @Composable
 fun ChatScreen(
     uiState: ChatUiState,
     onAction: (ChatAction) -> Unit,
+    onHomeClick: () -> Unit,
+    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
-    showConversationList: Boolean = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    isCompact: Boolean = true
 ) {
-    val listState = rememberLazyListState()
+    if (isCompact) {
+        ChatCompactScreen(
+            uiState = uiState,
+            onAction = onAction,
+            onHomeClick = onHomeClick,
+            onProfileClick = onProfileClick,
+            modifier = modifier
+        )
+    } else {
+        ChatExpandedScreen(
+            uiState = uiState,
+            onAction = onAction,
+            onHomeClick = onHomeClick,
+            onProfileClick = onProfileClick,
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun ChatCompactScreen(
+    uiState: ChatUiState,
+    onAction: (ChatAction) -> Unit,
+    onHomeClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showChatDetail by rememberSaveable { mutableStateOf(false) }
+
+    if (!showChatDetail) {
+        ChatroomListScreen(
+            uiState = uiState,
+            onSearchChanged = { query ->
+                onAction(ChatAction.OnSearchQueryChanged(query))
+            },
+            onChatroomClick = { chatroom ->
+                onAction(ChatAction.OnChatroomSelected(chatroom))
+                showChatDetail = true
+            },
+            onHomeClick = onHomeClick,
+            onProfileClick = onProfileClick,
+            modifier = modifier
+        )
+    } else {
+        ChatDetailScreen(
+            uiState = uiState,
+            onAction = onAction,
+            onBackClick = { showChatDetail = false },
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun ChatroomListScreen(
+    uiState: ChatUiState,
+    onSearchChanged: (String) -> Unit,
+    onChatroomClick: (Chatroom) -> Unit,
+    onHomeClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Scaffold(
+        modifier = modifier
+            .statusBarsPadding()
+            .fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            AppBottomBar(
+                selectedItem = "messages",
+                onMessagesClick = {},
+                onHomeClick = onHomeClick,
+                onProfileClick = onProfileClick
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = "Messages",
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.width(48.dp))
+            }
+
+            ChatroomPane(
+                searchText = uiState.searchQuery,
+                selectedChatroom = uiState.selectedChatroom,
+                chatrooms = uiState.filteredChatrooms,
+                projectsById = uiState.projectsById,
+                onSearchChanged = onSearchChanged,
+                onChatroomSelected = onChatroomClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChatDetailScreen(
+    uiState: ChatUiState,
+    onAction: (ChatAction) -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val accentColor = if (isSystemInDarkTheme()) {
         BrandAccentDark
     } else {
         BrandAccentLight
-    }
-
-    LaunchedEffect(
-        uiState.selectedChatroom,
-        uiState.chats.size
-    ) {
-        if (uiState.chats.isNotEmpty()) {
-            listState.animateScrollToItem(
-                uiState.chats.lastIndex
-            )
-        }
     }
 
     Surface(
@@ -92,46 +210,91 @@ fun ChatScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp),
+                    .padding(bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = { onAction(ChatAction.OnBackClick) }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.arrow_back_40px),
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onBackground
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Chatroom",
+                        color = accentColor,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
                     )
-                }
-
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = "Chatroom",
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                IconButton(
-                    onClick = { onAction(ChatAction.OnSearchClick) },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.search_24px),
-                        contentDescription = "Search"
+                    Text(
+                        text = "uiState.selectedProjectName",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                if (showConversationList) {
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+            )
+
+            ChatConversationContent(
+                uiState = uiState,
+                onAction = onAction,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChatExpandedScreen(
+    uiState: ChatUiState,
+    onAction: (ChatAction) -> Unit,
+    onHomeClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val accentColor = if (isSystemInDarkTheme()) {
+        BrandAccentDark
+    } else {
+        BrandAccentLight
+    }
+
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(20.dp)
+        ) {
+            AppNavigationRail(
+                selectedItem = "messages",
+                onMessagesClick = {},
+                onHomeClick = onHomeClick,
+                onProfileClick = onProfileClick
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "Chatroom",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Row(modifier = Modifier.fillMaxSize()) {
                     Card(
                         modifier = Modifier
                             .weight(0.95f)
@@ -140,166 +303,167 @@ fun ChatScreen(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surface
                         ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 2.dp
-                        )
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         ChatroomPane(
                             searchText = uiState.searchQuery,
                             selectedChatroom = uiState.selectedChatroom,
                             chatrooms = uiState.filteredChatrooms,
+                            projectsById = uiState.projectsById,
                             onSearchChanged = { query ->
-                                onAction(
-                                    ChatAction.OnSearchQueryChanged(query)
-                                )
+                                onAction(ChatAction.OnSearchQueryChanged(query))
                             },
                             onChatroomSelected = { chatroom ->
-                                onAction(
-                                    ChatAction.OnChatroomSelected(chatroom)
-                                )
+                                onAction(ChatAction.OnChatroomSelected(chatroom))
                             }
                         )
                     }
 
                     Spacer(modifier = Modifier.width(16.dp))
-                }
 
-                Card(
-                    modifier = Modifier
-                        .weight(1.65f)
-                        .fillMaxHeight(),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize()
+                    Card(
+                        modifier = Modifier
+                            .weight(1.65f)
+                            .fillMaxHeight(),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 16.dp)
-                        ) {
-                            Text(
-                                text = "Chatroom",
-                                color = accentColor,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Text(
-                                text = "Project ${uiState.project ?: ""}",
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                        )
-
-                        if (uiState.chats.isEmpty()) {
-                            Box(
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .weight(1f),
-                                contentAlignment = Alignment.Center
+                                    .padding(horizontal = 20.dp, vertical = 16.dp)
                             ) {
                                 Text(
-                                    text = "No messages yet.",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 16.sp
+                                    text = "Chatroom",
+                                    color = accentColor,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
                                 )
-                            }
-                        } else {
-                            LazyColumn(
-                                state = listState,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                                    .padding(horizontal = 12.dp),
-                                contentPadding = PaddingValues(vertical = 12.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                items(
-                                    items = uiState.chats,
-                                    key = { chat -> chat.id ?: "${chat.chatroom}-${chat.createdAt}" }
-                                ) { chat ->
-                                    ChatBubble(
-                                        chat = chat,
-                                        currentUserId = uiState.currentUserId,
-                                        avatarUrl = uiState.userAvatars[chat.sender]
-                                    )
-                                }
-                            }
-                        }
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                onClick = { onAction(ChatAction.OnAddClick) },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                )
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.add_24px),
-                                    contentDescription = "Add"
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Text(
+                                    text = uiState.selectedProjectName,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
 
-                            OutlinedTextField(
-                                value = uiState.chatInput,
-                                onValueChange = {
-                                    onAction(ChatAction.OnInputChanged(it))
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(horizontal = 8.dp),
-                                placeholder = {
-                                    Text("Type a message")
-                                },
-                                shape = RoundedCornerShape(16.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                                ),
-                                singleLine = true
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                             )
 
-                            IconButton(
-                                onClick = {
-                                    onAction(ChatAction.OnSendClick)
-                                },
-                                enabled = uiState.chatInput.isNotBlank() &&
-                                        uiState.selectedChatroom != null &&
-                                        uiState.currentUserId != null &&
-                                        !uiState.isSending,
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                )
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.send_24px),
-                                    contentDescription = "Send"
-                                )
-                            }
+                            ChatConversationContent(
+                                uiState = uiState,
+                                onAction = onAction,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .weight(1f)
+                            )
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatConversationContent(
+    uiState: ChatUiState,
+    onAction: (ChatAction) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(uiState.selectedChatroom, uiState.chats.size) {
+        if (uiState.chats.isNotEmpty()) {
+            listState.animateScrollToItem(uiState.chats.lastIndex)
+        }
+    }
+
+    Column(modifier = modifier) {
+        if (uiState.chats.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No messages yet.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 16.sp
+                )
+            }
+        } else {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 12.dp),
+                contentPadding = PaddingValues(vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    items = uiState.chats,
+                    key = { chat -> chat.id ?: "${chat.chatroom}-${chat.createdAt}" }
+                ) { chat ->
+                    ChatBubble(
+                        chat = chat,
+                        currentUserId = uiState.currentUserId,
+                        avatarUrl = uiState.userAvatars[chat.sender]
+                    )
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = uiState.chatInput,
+                onValueChange = { onAction(ChatAction.OnInputChanged(it)) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                placeholder = { Text("Type a message") },
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                singleLine = true
+            )
+
+            IconButton(
+                onClick = { onAction(ChatAction.OnSendClick) },
+                enabled = uiState.chatInput.isNotBlank() &&
+                        uiState.selectedChatroom != null &&
+                        uiState.currentUserId != null &&
+                        !uiState.isSending,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+                )
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.send_24px),
+                    contentDescription = "Send"
+                )
             }
         }
     }
@@ -310,6 +474,7 @@ private fun ChatroomPane(
     searchText: String,
     selectedChatroom: Chatroom?,
     chatrooms: List<Chatroom>,
+    projectsById: Map<Int, Project>,
     onSearchChanged: (String) -> Unit,
     onChatroomSelected: (Chatroom) -> Unit
 ) {
@@ -324,8 +489,12 @@ private fun ChatroomPane(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            placeholder = {
-                Text("Search chatroom")
+            placeholder = { Text("Search chatroom") },
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.search_24px),
+                    contentDescription = "Search"
+                )
             },
             singleLine = true
         )
@@ -345,17 +514,13 @@ private fun ChatroomPane(
             ) {
                 items(
                     items = chatrooms,
-                    key = { chatroom ->
-                        chatroom.id ?: "${chatroom.member1}-${chatroom.member2}"
-                    }
+                    key = { chatroom -> chatroom.id ?: "${chatroom.member1}-${chatroom.member2}" }
                 ) { chatroom ->
-
                     ChatroomItem(
                         chatroom = chatroom,
+                        project = projectsById[chatroom.project],
                         isSelected = chatroom.id == selectedChatroom?.id,
-                        onClick = {
-                            onChatroomSelected(chatroom)
-                        }
+                        onClick = { onChatroomSelected(chatroom) }
                     )
                 }
             }
@@ -366,21 +531,41 @@ private fun ChatroomPane(
 @Composable
 private fun ChatroomItem(
     chatroom: Chatroom,
+    project: Project?,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Text(
-        text = "Project ${chatroom.project}",
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(16.dp),
-        fontWeight = if (isSelected) {
-            FontWeight.Bold
-        } else {
-            FontWeight.Normal
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.secondaryContainer)
+        ) {
+            val avatarUrl = project?.avatarUrl
+            if (!avatarUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
-    )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = project?.title ?: "Project ${chatroom.project}",
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
 }
 
 @Composable
@@ -444,29 +629,60 @@ private fun ChatBox(
             .clip(RoundedCornerShape(12.dp))
             .border(
                 width = 1.dp,
-                color = if (isMe) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.secondary
-                },
+                color = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(12.dp)
             .widthIn(max = 250.dp)
     ) {
         Column {
-            Text(
-                text = content,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
+            Text(text = content, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(4.dp))
-
             Text(
                 text = timestamp,
                 fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Preview(name = "Compact Light", showBackground = true)
+@Preview(
+    name = "Compact Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true
+)
+@Composable
+private fun ChatCompactPreview() {
+    FundForGoalsTheme {
+        ChatScreen(
+            uiState = ChatUiState(),
+            onAction = {},
+            onHomeClick = {},
+            onProfileClick = {},
+            isCompact = true
+        )
+    }
+}
+
+@Preview(name = "Expanded Light", widthDp = 900, heightDp = 700, showBackground = true)
+@Preview(
+    name = "Expanded Dark",
+    widthDp = 900,
+    heightDp = 700,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true
+)
+@Composable
+private fun ChatExpandedPreview() {
+    FundForGoalsTheme {
+        ChatScreen(
+            uiState = ChatUiState(),
+            onAction = {},
+            onHomeClick = {},
+            onProfileClick = {},
+            isCompact = false
+        )
     }
 }

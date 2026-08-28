@@ -1,5 +1,6 @@
 package com.example.fundforgoals.supabase.model
 
+import android.text.BoringLayout
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -23,7 +24,12 @@ data class Project(
     val currentFund: Double,
 
     @SerialName("avatar_url")
-    val avatarUrl: String
+    val avatarUrl: String,
+
+    @SerialName("is_approved")
+    val isApproved: Boolean,
+
+    val status: String? = null
 )
 
 @Serializable
@@ -41,7 +47,12 @@ data class CreateProjectRequest(
     val currentFund: Double,
 
     @SerialName("avatar_url")
-    val avatarUrl: String
+    val avatarUrl: String,
+
+    @SerialName("is_approved")
+    val isApproved: Boolean,
+
+    val status: String? = null
 )
 
 @Serializable
@@ -56,5 +67,10 @@ data class UpdateProjectRequest(
     val currentFund: Double,
 
     @SerialName("avatar_url")
-    val avatarUrl: String
+    val avatarUrl: String,
+
+    @SerialName("is_approved")
+    val isApproved: Boolean,
+
+    val status: String? = null
 )

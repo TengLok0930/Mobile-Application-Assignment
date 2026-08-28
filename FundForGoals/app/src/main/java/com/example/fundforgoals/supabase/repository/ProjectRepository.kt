@@ -24,7 +24,9 @@ class ProjectRepository {
             createdBy = project.createdBy,
             fundGoal = project.fundGoal,
             currentFund = project.currentFund,
-            avatarUrl = project.avatarUrl
+            avatarUrl = project.avatarUrl,
+            isApproved = project.isApproved,
+            status = project.status
         )
 
         supabase
@@ -41,7 +43,9 @@ class ProjectRepository {
             desc = project.desc,
             fundGoal = project.fundGoal,
             currentFund = project.currentFund,
-            avatarUrl = project.avatarUrl
+            avatarUrl = project.avatarUrl,
+            isApproved = project.isApproved,
+            status = project.status
         )
 
         supabase
@@ -69,6 +73,29 @@ class ProjectRepository {
             .select {
                 filter {
                     eq("created_by", userId)
+                }
+            }
+            .decodeList<Project>()
+    }
+
+    suspend fun getProjectById(id: Int): Project? {
+        return supabase
+            .from("project")
+            .select {
+                filter {
+                    eq("id", id)
+                }
+            }
+            .decodeList<Project>()
+            .firstOrNull()
+    }
+
+    suspend fun getOngoingProjects(): List<Project> {
+        return supabase
+            .from("project")
+            .select {
+                filter {
+                    eq("status", "Ongoing")
                 }
             }
             .decodeList<Project>()
