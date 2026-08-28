@@ -78,47 +78,38 @@ class ChatViewModel(
 
     private fun initializeChat() {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(isLoading = true, errorMessage = null)
-            }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             runCatching {
-                val user = userRepository
-                    .getUserByUsername(currentUserName)
+                val user = userRepository.getUserByUsername(currentUserName)
                     ?: error("User not found")
+                val userId = user.id ?: error("User ID is missing")
 
-                val userId = user.id
-                    ?: error("User ID is missing")
-
-                val chatrooms = chatroomRepository
-                    .getChatroomByUserId(userId)
-
+                val chatrooms = chatroomRepository.getChatroomsByUserId(userId)
                 val firstChatroom = chatrooms.firstOrNull()
 
                 val chats = firstChatroom?.id?.let { chatroomId ->
                     chatRepository.getChatsByChatroom(chatroomId)
                 }.orEmpty()
 
-                val otherMemberIds = chatrooms.mapNotNull { chatroom ->
-                    if (chatroom.member1 == userId) chatroom.member2 else chatroom.member1
-                }.distinct()
-
-                val avatars = buildMap {
-                    put(userId, user.avatarUrl)
-                    otherMemberIds.forEach { memberId ->
-                        userRepository.getUserById(memberId)?.let { member ->
-                            put(memberId, member.avatarUrl)
-                        }
-                    }
-                }
-
                 val projectIds = chatrooms.map { it.project }.distinct()
 
                 val projects = buildMap {
                     projectIds.forEach { projectId ->
-                        projectRepository.getProjectById(projectId)?.let { project ->
-                            put(projectId, project)
+                        projectRepository.getProjectById(projectId)?.let { put(projectId, it) }
+                    }
+                }
+
+                // Fetch avatars for everyone who appears in the loaded chats, plus yourself
+                val senderIds = (chats.map { it.sender } + userId).distinct()
+                val avatars = buildMap {
+                    senderIds.forEach { senderId ->
+                        val avatarUrl = if (senderId == userId) {
+                            user.avatarUrl
+                        } else {
+                            userRepository.getUserById(senderId)?.avatarUrl
                         }
+                        if (avatarUrl != null) put(senderId, avatarUrl)
                     }
                 }
 
@@ -144,10 +135,7 @@ class ChatViewModel(
                 }
             }.onFailure { exception ->
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = exception.message ?: "Failed to initialize chat"
-                    )
+                    it.copy(isLoading = false, errorMessage = exception.message ?: "Failed to initialize chat")
                 }
             }
         }
@@ -157,30 +145,35 @@ class ChatViewModel(
         val chatroomId = chatroom.id ?: return
 
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isLoading = true,
-                    errorMessage = null
-                )
-            }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             runCatching {
-                chatRepository.getChatsByChatroom(chatroomId)
-            }.onSuccess { chats ->
+                val chats = chatRepository.getChatsByChatroom(chatroomId)
+
+                // Merge in avatars for any senders we haven't fetched yet
+                val existingAvatars = _uiState.value.userAvatars
+                val newSenderIds = chats.map { it.sender }.distinct()
+                    .filterNot { existingAvatars.containsKey(it) }
+
+                val newAvatars = buildMap {
+                    newSenderIds.forEach { senderId ->
+                        userRepository.getUserById(senderId)?.avatarUrl?.let { put(senderId, it) }
+                    }
+                }
+
+                chats to (existingAvatars + newAvatars)
+            }.onSuccess { (chats, avatars) ->
                 _uiState.update {
                     it.copy(
                         selectedChatroom = chatroom,
                         chats = chats,
+                        userAvatars = avatars,
                         isLoading = false
                     )
                 }
             }.onFailure { exception ->
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = exception.message
-                            ?: "Failed to load messages"
-                    )
+                    it.copy(isLoading = false, errorMessage = exception.message ?: "Failed to load messages")
                 }
             }
         }

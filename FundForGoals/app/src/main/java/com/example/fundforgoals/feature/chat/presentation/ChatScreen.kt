@@ -160,6 +160,10 @@ private fun ChatroomListScreen(
                     .padding(bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                uiState.errorMessage?.let {
+                    Text(text = it, color = MaterialTheme.colorScheme.error)
+                }
+
                 Text(
                     modifier = Modifier.weight(1f),
                     text = "Messages",
@@ -221,7 +225,7 @@ private fun ChatDetailScreen(
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "uiState.selectedProjectName",
+                        text = uiState.selectedProjectName,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
@@ -514,7 +518,9 @@ private fun ChatroomPane(
             ) {
                 items(
                     items = chatrooms,
-                    key = { chatroom -> chatroom.id ?: "${chatroom.member1}-${chatroom.member2}" }
+                    key = { chatroom ->
+                        chatroom.id ?: "project-${chatroom.project}"
+                    }
                 ) { chatroom ->
                     ChatroomItem(
                         chatroom = chatroom,

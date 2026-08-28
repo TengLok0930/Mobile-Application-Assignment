@@ -2,25 +2,25 @@ package com.example.fundforgoals.supabase.repository
 
 import com.example.fundforgoals.supabase.model.Chatroom
 import com.example.fundforgoals.supabase.model.CreateChatroomRequest
-import com.example.fundforgoals.supabase.model.UpdateChatroomRequest
 import com.example.fundforgoals.supabase.supabase
 import io.github.jan.supabase.postgrest.from
 
-
 class ChatroomRepository {
 
-    suspend fun getChatroom(): List<Chatroom> {
+    private val contributorRepository = ContributorRepository()
+
+    suspend fun getChatrooms(): List<Chatroom> {
         return supabase
             .from("chatroom")
             .select()
             .decodeList<Chatroom>()
     }
 
-    suspend fun addChatroom(chatroom: Chatroom) {
+    suspend fun addChatroom(
+        projectId: Int
+    ) {
         val request = CreateChatroomRequest(
-            member1 = chatroom.member1,
-            member2 = chatroom.member2,
-            project = chatroom.project
+            project = projectId
         )
 
         supabase
@@ -28,73 +28,33 @@ class ChatroomRepository {
             .insert(request)
     }
 
-    suspend fun modifyChatroom(chatroom: Chatroom) {
-        val chatroomId = chatroom.id
-            ?: throw IllegalArgumentException("Chatroom ID is required for updating")
+    suspend fun getChatroomsByUserId(
+        userId: Int
+    ): List<Chatroom> {
+        val contributors =
+            contributorRepository.getContributorsByUserId(userId)
 
+        val projectIds = contributors.map { it.project }
 
-        val request = UpdateChatroomRequest(
-            member1 = chatroom.member1,
-            member2 = chatroom.member2
-        )
+        if (projectIds.isEmpty()) {
+            return emptyList()
+        }
 
-        supabase
-            .from("chatroom")
-            .update(request) {
-                filter {
-                    eq("id", chatroomId)
-                }
-            }
+        val allChatrooms = getChatrooms()
+
+        return allChatrooms.filter { chatroom ->
+            chatroom.project in projectIds
+        }
     }
 
-    suspend fun deleteChatroom(id: Int) {
-        supabase
-            .from("chatroom")
-            .delete {
-                filter {
-                    eq("id", id)
-                }
-            }
-    }
-
-    suspend fun getChatroomByUserId(id: Int): List<Chatroom> {
-        return supabase
-            .from("chatroom")
-            .select {
-                filter {
-                    or {
-                        eq("member1", id)
-                        eq("member2", id)
-                    }
-                }
-            }
-            .decodeList<Chatroom>()
-    }
-
-    suspend fun getChatroomById(id: Int): Chatroom? {
-        return supabase
-            .from("chatroom")
-            .select {
-                filter {
-                    eq("id", id)
-                }
-            }
-            .decodeList<Chatroom>()
-            .firstOrNull()
-    }
-
-    suspend fun getChatroomBetweenMembers(
-        member1: Int,
-        member2: Int,
-        projectId: Int
+    suspend fun getChatroomById(
+        id: Int
     ): Chatroom? {
         return supabase
             .from("chatroom")
             .select {
                 filter {
-                    eq("member1", member1)
-                    eq("member2", member2)
-                    eq("project", projectId)
+                    eq("id", id)
                 }
             }
             .decodeList<Chatroom>()
