@@ -4,6 +4,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class RequestProject(
+    val id: Int,
+    val title: String
+)
+@Serializable
 data class ProjectRequest(
     val id: Int? = null,
 
@@ -11,22 +16,36 @@ data class ProjectRequest(
     val createdAt: String,
 
     val details: String,
-    val aiOverview: String,
+
+    @SerialName("ai_overview")
+    val aiOverview: String? = null,
+
     val status: String,
-    val projectId: Int
+
+    @SerialName("project_id")
+    val projectId: Int,
+
+    val project: RequestProject? = null
 )
 
 @Serializable
 data class CreateProjectRequestRequest (
     val details: String,
-    val aiOverview: String,
+
+    @SerialName("ai_overview")
+    val aiOverview: String? = null,
     val status: String,
+
+    @SerialName("project_id")
     val projectId: Int
 )
 
 @Serializable
 data class UpdateProjectRequestRequest(
     val details: String,
-    val aiOverview: String,
+
+    @SerialName("ai_overview")
+    val aiOverview: String? = null,
+
     val status: String,
 )

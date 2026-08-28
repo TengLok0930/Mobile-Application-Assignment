@@ -6,6 +6,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+data class OrganisationPastProjectUi(
+    val id: String,
+    val title: String,
+    val contributionAmountText: String = ""
+)
+
+data class OrganisationProfileUiState(
+    val isLoading: Boolean = false,
+    val organisationName: String = "Organisation 1",
+    val appearanceLabel: String = "Dark",
+    val notificationsLabel: String = "On",
+    val pastProjects: List<OrganisationPastProjectUi> = emptyList(),
+    val totalContributionsText: String = "$0",
+    val errorMessage: String? = null
+)
+
 class OrganisationProfileViewModel : ViewModel() {
 
     private val samplePastProjects = listOf(
@@ -32,15 +48,17 @@ class OrganisationProfileViewModel : ViewModel() {
     )
     val uiState: StateFlow<OrganisationProfileUiState> = _uiState.asStateFlow()
 
+    fun setAppearanceLabel(isDarkTheme: Boolean) {
+        _uiState.update { current ->
+            current.copy(
+                appearanceLabel = if (isDarkTheme) "Dark" else "Light"
+            )
+        }
+    }
+
     fun onAction(action: OrganisationProfileAction) {
         when (action) {
-            OrganisationProfileAction.OnAppearanceClick -> {
-                _uiState.update { current ->
-                    current.copy(
-                        appearanceLabel = if (current.appearanceLabel == "Dark") "Light" else "Dark"
-                    )
-                }
-            }
+            OrganisationProfileAction.OnAppearanceClick -> Unit
 
             OrganisationProfileAction.OnNotificationsClick -> {
                 _uiState.update { current ->

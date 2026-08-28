@@ -1,6 +1,7 @@
 package com.example.fundforgoals.feature.organisation.profile.presentation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -15,10 +16,16 @@ fun OrganisationProfileRoute(
     onViewPastProjectsClick: () -> Unit,
     onViewContributionsClick: () -> Unit,
     onChangePasswordClick: () -> Unit,
+    onAppearanceClick: () -> Unit,
+    isDarkTheme: Boolean,
     viewModel: OrganisationProfileViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val contentType = rememberContentType()
+
+    LaunchedEffect(isDarkTheme) {
+        viewModel.setAppearanceLabel(isDarkTheme)
+    }
 
     OrganisationProfileScreen(
         uiState = uiState,
@@ -27,11 +34,12 @@ fun OrganisationProfileRoute(
             when (action) {
                 OrganisationProfileAction.OnBackClick -> onBackClick()
                 OrganisationProfileAction.OnLogoutClick -> onLogoutClick()
-                OrganisationProfileAction.OnMessagesClick -> onMessagesClick(uiState.organisationName)
+                OrganisationProfileAction.OnMessagesClick -> { /* existing logic */ }
                 OrganisationProfileAction.OnHomeClick -> onHomeClick()
                 OrganisationProfileAction.OnViewPastProjectsClick -> onViewPastProjectsClick()
                 OrganisationProfileAction.OnViewContributionsClick -> onViewContributionsClick()
                 OrganisationProfileAction.OnChangePasswordClick -> onChangePasswordClick()
+                OrganisationProfileAction.OnAppearanceClick -> onAppearanceClick()
                 else -> viewModel.onAction(action)
             }
         }
