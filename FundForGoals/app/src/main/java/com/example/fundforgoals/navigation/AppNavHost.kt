@@ -608,18 +608,49 @@ fun AppNavHost(
         composable(
             route = AppDestination.Chat.route,
             arguments = listOf(
-                navArgument("currentUser") {
-                    type = NavType.StringType
-                }
+                navArgument("currentUser") { type = NavType.StringType }
             )
-        ) {
+        ) { backStackEntry ->
+            val currentUser = backStackEntry.arguments?.getString("currentUser")
+                ?: return@composable
+            val userType = sessionManager.getUserType().orEmpty()
+
             ChatRoute(
                 viewModel = viewModel<ChatViewModel>(),
                 onHomeClick = {
-                    navController.popBackStack()
+                    val destination = when {
+                        userType.equals("organisation", ignoreCase = true) ->
+                            AppDestination.OrganisationHome.createRoute(currentUser)
+                        userType.equals("member", ignoreCase = true) ->
+                            AppDestination.MemberHome.createRoute(currentUser)
+                        userType.equals("admin", ignoreCase = true) ->
+                            AppDestination.AdminHome.route
+                        else -> null
+                    }
+                    if (destination != null) {
+                        navController.navigate(destination) {
+                            popUpTo(navController.graph.id) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    } else {
+                        navController.popBackStack()
+                    }
                 },
                 onProfileClick = {
-                    navController.popBackStack()
+                    val destination = when {
+                        userType.equals("organisation", ignoreCase = true) ->
+                            AppDestination.OrganisationProfile.createRoute(currentUser)
+                        userType.equals("member", ignoreCase = true) ->
+                            AppDestination.MemberProfile.createRoute(currentUser)
+                        userType.equals("admin", ignoreCase = true) ->
+                            AppDestination.AdminProfile.route
+                        else -> null
+                    }
+                    if (destination != null) {
+                        navController.navigate(destination) { launchSingleTop = true }
+                    } else {
+                        navController.popBackStack()
+                    }
                 }
             )
         }
