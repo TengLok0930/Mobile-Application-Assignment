@@ -17,7 +17,7 @@ class ProjectRepository {
             .decodeList<Project>()
     }
 
-    suspend fun addProject(project: Project) {
+    suspend fun addProject(project: Project): Project {
         val request = CreateProjectRequest(
             title = project.title,
             desc = project.desc,
@@ -28,9 +28,12 @@ class ProjectRepository {
             hasCert = project.hasCert
         )
 
-        supabase
+        return supabase
             .from("project")
-            .insert(request)
+            .insert(request) {
+                select()
+            }
+            .decodeSingle<Project>()
     }
 
     suspend fun modifyProject(project: Project) {
@@ -115,5 +118,17 @@ class ProjectRepository {
         val ongoingProjects = getOngoingProjects()
         if (excludeProjectIds.isEmpty()) return ongoingProjects
         return ongoingProjects.filterNot { it.id in excludeProjectIds }
+    }
+
+    suspend fun getProjectsByOwnUserOngoing(userId: Int): List<Project> {
+        return supabase
+            .from("project")
+            .select {
+                filter {
+                    eq("created_by", userId)
+                    eq("status", "Ongoing")
+                }
+            }
+            .decodeList<Project>()
     }
 }

@@ -60,4 +60,16 @@ class ChatroomRepository {
             .decodeList<Chatroom>()
             .firstOrNull()
     }
+
+    suspend fun getChatroomByProjectId(projectId: Int): Chatroom? {
+        return supabase
+            .from("chatroom")
+            .select {
+                filter {
+                    eq("project", projectId)
+                }
+            }
+            .decodeList<Chatroom>()
+            .firstOrNull()
+    }
 }

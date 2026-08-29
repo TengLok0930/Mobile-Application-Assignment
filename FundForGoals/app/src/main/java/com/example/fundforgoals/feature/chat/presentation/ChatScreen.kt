@@ -70,8 +70,19 @@ fun ChatScreen(
     onHomeClick: () -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isCompact: Boolean = true
+    isCompact: Boolean = true,
+    onBackNavigate: () -> Unit = {}
 ) {
+    if (uiState.isChatroomOnly) {
+        ChatDetailScreen(
+            uiState = uiState,
+            onAction = onAction,
+            onBackClick = onBackNavigate,
+            modifier = modifier
+        )
+        return
+    }
+
     if (isCompact) {
         ChatCompactScreen(
             uiState = uiState,
@@ -188,75 +199,6 @@ private fun ChatroomListScreen(
     }
 }
 
-@Composable
-private fun ChatDetailScreen(
-    uiState: ChatUiState,
-    onAction: (ChatAction) -> Unit,
-    onBackClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val accentColor = if (isSystemInDarkTheme()) {
-        BrandAccentDark
-    } else {
-        BrandAccentLight
-    }
-
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 12.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.padding(start = 12.dp, top = 4.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.arrow_back_40px),
-                        contentDescription = "Back"
-                    )
-                }
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Chatroom",
-                        color = accentColor,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = uiState.selectedProjectName,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-            )
-
-            ChatConversationContent(
-                uiState = uiState,
-                onAction = onAction,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f)
-            )
-        }
-    }
-}
 
 @Composable
 private fun ChatExpandedScreen(
@@ -388,6 +330,77 @@ private fun ChatExpandedScreen(
 }
 
 @Composable
+private fun ChatDetailScreen(
+    uiState: ChatUiState,
+    onAction: (ChatAction) -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val accentColor = if (isSystemInDarkTheme()) {
+        BrandAccentDark
+    } else {
+        BrandAccentLight
+    }
+
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.padding(start = 12.dp, top = 4.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.arrow_back_40px),
+                        contentDescription = "Back"
+                    )
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Chatroom",
+                        color = accentColor,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = uiState.selectedProjectName,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+            )
+
+            ChatConversationContent(
+                uiState = uiState,
+                onAction = onAction,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+            )
+        }
+    }
+}
+
+
+@Composable
 private fun ChatConversationContent(
     uiState: ChatUiState,
     onAction: (ChatAction) -> Unit,
@@ -444,40 +457,52 @@ private fun ChatConversationContent(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            OutlinedTextField(
-                value = uiState.chatInput,
-                onValueChange = { onAction(ChatAction.OnInputChanged(it)) },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                placeholder = { Text("Type a message") },
-                shape = RoundedCornerShape(16.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                ),
-                singleLine = true
-            )
+            if (uiState.isReadOnly) {
+                Text(
+                    text = "Read-only — monitoring view",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                OutlinedTextField(
+                    value = uiState.chatInput,
+                    onValueChange = { onAction(ChatAction.OnInputChanged(it)) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp),
+                    placeholder = { Text("Type a message") },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    singleLine = true
+                )
 
-            IconButton(
-                onClick = { onAction(ChatAction.OnSendClick) },
-                enabled = uiState.chatInput.isNotBlank() &&
-                        uiState.selectedChatroom != null &&
-                        uiState.currentUserId != null &&
-                        !uiState.isSending,
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
-                )
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.send_24px),
-                    contentDescription = "Send"
-                )
+                IconButton(
+                    onClick = { onAction(ChatAction.OnSendClick) },
+                    enabled = uiState.chatInput.isNotBlank() &&
+                            uiState.selectedChatroom != null &&
+                            uiState.currentUserId != null &&
+                            !uiState.isSending,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+                    )
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.send_24px),
+                        contentDescription = "Send"
+                    )
+                }
             }
         }
     }

@@ -9,7 +9,7 @@ import com.example.fundforgoals.core.util.rememberContentType
 @Composable
 fun OrganisationHomeRoute(
     viewModel: OrganisationHomeViewModel,
-    onProjectSelected: (Int) -> Unit,
+    onCreateProjectClick: (String) -> Unit,
     onViewProjectClick: () -> Unit,
     onMessagesClick: (currentUser: String) -> Unit,
     onProfileClick: () -> Unit
@@ -25,7 +25,7 @@ fun OrganisationHomeRoute(
             when (action) {
                 is OrganisationHomeAction.OnProjectClick -> viewModel.onAction(action)
                 OrganisationHomeAction.OnViewProjectClick -> onViewProjectClick()
-                OrganisationHomeAction.OnNewProjectClick -> viewModel.onAction(action)
+                OrganisationHomeAction.OnNewProjectClick -> onCreateProjectClick(uiState.currentUser)
                 OrganisationHomeAction.OnMessagesClick -> onMessagesClick(uiState.currentUser)
                 OrganisationHomeAction.OnProfileClick -> onProfileClick()
                 is OrganisationHomeAction.OnSearchQueryChanged -> viewModel.onAction(action)

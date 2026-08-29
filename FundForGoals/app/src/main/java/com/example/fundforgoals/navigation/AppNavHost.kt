@@ -26,6 +26,7 @@ import com.example.fundforgoals.feature.auth.registration.member.MemberRegViewMo
 import com.example.fundforgoals.feature.auth.registration.organisation.presentation.OrganisationRegRoute
 import com.example.fundforgoals.feature.auth.registration.organisation.presentation.OrganisationRegViewModel
 import com.example.fundforgoals.feature.auth.registration.signup_choice.presentation.SignUpChoiceRoute
+import com.example.fundforgoals.feature.chat.presentation.AdminChatroomRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatViewModel
 import com.example.fundforgoals.feature.member.contribute.presentation.MemberContributeRoute
@@ -36,6 +37,7 @@ import com.example.fundforgoals.feature.member.profile.presentation.MemberProfil
 import com.example.fundforgoals.feature.member.profile.presentation.MemberProfileViewModel
 import com.example.fundforgoals.feature.organisation.contribute.presentation.OrganisationContributeRoute
 import com.example.fundforgoals.feature.organisation.contribute.presentation.OrganisationContributeViewModel
+import com.example.fundforgoals.feature.organisation.createProject.presentation.CreateProjectRoute
 import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeRoute
 import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeViewModel
 import com.example.fundforgoals.feature.organisation.profile.presentation.OrganisationProfileRoute
@@ -319,10 +321,12 @@ fun AppNavHost(
             val currentUser = backStackEntry.arguments?.getString("currentUser") ?: return@composable
             OrganisationHomeRoute(
                 viewModel = viewModel<OrganisationHomeViewModel>(),
-                onProjectSelected = { projectId ->
+                onCreateProjectClick = { currentUser ->
                     navController.navigate(
-                        AppDestination.OrganisationProjectDetail.createRoute(projectId)
-                    )
+                        AppDestination.OrganisationCreateProject.createRoute(currentUser)
+                    ) {
+                        launchSingleTop = true
+                    }
                 },
                 onViewProjectClick = {
                     navController.navigate(
@@ -333,6 +337,54 @@ fun AppNavHost(
                 },
                 onMessagesClick = {
                     navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
+                        launchSingleTop = true
+                    }
+                },
+                onProfileClick = {
+                    navController.navigate(
+                        AppDestination.OrganisationProfile.createRoute(currentUser)
+                    ) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = AppDestination.OrganisationCreateProject.route,
+            arguments = listOf(
+                navArgument("currentUser") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentUser = backStackEntry.arguments?.getString("currentUser") ?: return@composable
+
+            CreateProjectRoute(
+                currentUser = currentUser,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onProjectCreated = {
+                    navController.navigate(
+                        AppDestination.OrganisationHome.createRoute(currentUser)
+                    ) {
+                        popUpTo(AppDestination.OrganisationHome.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onMessagesClick = {
+                    navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
+                        launchSingleTop = true
+                    }
+                },
+                onHomeClick = {
+                    navController.navigate(
+                        AppDestination.OrganisationHome.createRoute(currentUser)
+                    ) {
+                        popUpTo(AppDestination.OrganisationHome.route) {
+                            inclusive = false
+                        }
                         launchSingleTop = true
                     }
                 },
@@ -457,6 +509,8 @@ fun AppNavHost(
         }
 
         composable(route = AppDestination.AdminHome.route) {
+            val adminUser = sessionManager.getUsername().orEmpty()
+
             AdminHomeRoute(
                 viewModel = viewModel<AdminHomeViewModel>(),
                 onRequestClick = {
@@ -469,22 +523,19 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onMonitorClick = { projectId ->
-                    navController.navigate(
-                        AppDestination.AdminMonitorDetail.createRoute(projectId.toString())
-                    ) { launchSingleTop = true }
-                },
+                onMonitorClick = { /* handled internally by AdminHomeRoute for compact; no-op here */ },
                 onWarnProjectClick = { projectId ->
                     navController.navigate(
                         AppDestination.AdminWarningDetail.createRoute(projectId.toString())
-                    ) { launchSingleTop = true }
+                    ) {
+                        launchSingleTop = true
+                    }
                 },
                 onViewChatroomClick = { projectId ->
-                    val adminUsername = sessionManager.getUsername().orEmpty()
-                    if (adminUsername.isNotBlank()) {
-                        navController.navigate(AppDestination.Chat.createRoute(adminUsername)) {
-                            launchSingleTop = true
-                        }
+                    navController.navigate(
+                        AppDestination.AdminChatroom.createRoute(adminUser, projectId)
+                    ) {
+                        launchSingleTop = true
                     }
                 }
             )
@@ -597,6 +648,21 @@ fun AppNavHost(
                     } else {
                         navController.popBackStack()
                     }
+                }
+            )
+        }
+
+        composable(
+            route = AppDestination.AdminChatroom.route,
+            arguments = listOf(
+                navArgument("currentUser") { type = NavType.StringType },
+                navArgument("projectId") { type = NavType.StringType }
+            )
+        ) {
+            AdminChatroomRoute(
+                viewModel = viewModel<ChatViewModel>(),
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

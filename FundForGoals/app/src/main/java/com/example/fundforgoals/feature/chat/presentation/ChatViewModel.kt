@@ -19,6 +19,8 @@ import kotlinx.coroutines.launch
 data class ChatUiState(
     val currentUserName: String = "",
     val currentUserId: Int? = null,
+    val isReadOnly: Boolean = false,
+    val isChatroomOnly: Boolean = false,
 
     val chatrooms: List<Chatroom> = emptyList(),
     val selectedChatroom: Chatroom? = null,
@@ -63,9 +65,19 @@ class ChatViewModel(
     private val currentUserName: String =
         checkNotNull(savedStateHandle["currentUser"])
 
+    private val adminProjectId: Int? =
+        savedStateHandle.get<String>("projectId")?.toIntOrNull()
+
+    private val isAdminView: Boolean = adminProjectId != null
+
+    private val isReadOnly: Boolean =
+        isAdminView || (savedStateHandle.get<String>("isReadOnly")?.toBoolean() ?: false)
+
     private val _uiState = MutableStateFlow(
         ChatUiState(
-            currentUserName = currentUserName
+            currentUserName = currentUserName,
+            isReadOnly = isReadOnly,
+            isChatroomOnly = isAdminView
         )
     )
 
@@ -73,7 +85,50 @@ class ChatViewModel(
         _uiState.asStateFlow()
 
     init {
-        initializeChat()
+        if (isAdminView) {
+            initializeAdminChatroom(adminProjectId!!)
+        } else {
+            initializeChat()
+        }
+    }
+
+    private fun initializeAdminChatroom(projectId: Int) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            runCatching {
+                val chatroom = chatroomRepository.getChatroomByProjectId(projectId)
+                    ?: error("No chatroom found for this project")
+                val chatroomId = chatroom.id ?: error("Chatroom has no id")
+
+                val chats = chatRepository.getChatsByChatroom(chatroomId)
+                val project = projectRepository.getProjectById(projectId)
+
+                val senderIds = chats.map { it.sender }.distinct()
+                val avatars = buildMap {
+                    senderIds.forEach { senderId ->
+                        userRepository.getUserById(senderId)?.avatarUrl?.let { put(senderId, it) }
+                    }
+                }
+
+                AdminChatData(chatroom, chats, project, avatars)
+            }.onSuccess { data ->
+                _uiState.update {
+                    it.copy(
+                        chatrooms = listOf(data.chatroom),
+                        selectedChatroom = data.chatroom,
+                        chats = data.chats,
+                        projectsById = data.project?.id?.let { id -> mapOf(id to data.project) }.orEmpty(),
+                        userAvatars = data.avatars,
+                        isLoading = false
+                    )
+                }
+            }.onFailure { exception ->
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = exception.message ?: "Failed to load chatroom")
+                }
+            }
+        }
     }
 
     private fun initializeChat() {
@@ -100,7 +155,6 @@ class ChatViewModel(
                     }
                 }
 
-                // Fetch avatars for everyone who appears in the loaded chats, plus yourself
                 val senderIds = (chats.map { it.sender } + userId).distinct()
                 val avatars = buildMap {
                     senderIds.forEach { senderId ->
@@ -150,7 +204,6 @@ class ChatViewModel(
             runCatching {
                 val chats = chatRepository.getChatsByChatroom(chatroomId)
 
-                // Merge in avatars for any senders we haven't fetched yet
                 val existingAvatars = _uiState.value.userAvatars
                 val newSenderIds = chats.map { it.sender }.distinct()
                     .filterNot { existingAvatars.containsKey(it) }
@@ -181,6 +234,11 @@ class ChatViewModel(
 
     private fun sendMessage() {
         val state = _uiState.value
+
+        // Belt-and-braces: even if an admin's read-only UI somehow dispatched this,
+        // refuse here rather than relying solely on the UI hiding the button.
+        if (state.isReadOnly) return
+
         val content = state.chatInput.trim()
         val chatroomId = state.selectedChatroom?.id
         val userId = state.currentUserId
@@ -241,6 +299,7 @@ class ChatViewModel(
             }
 
             is ChatAction.OnInputChanged -> {
+                if (_uiState.value.isReadOnly) return
                 _uiState.update {
                     it.copy(chatInput = action.value)
                 }
@@ -265,5 +324,12 @@ class ChatViewModel(
         val chats: List<Chat>,
         val avatars: Map<Int, String>,
         val projects: Map<Int, Project>
+    )
+
+    private data class AdminChatData(
+        val chatroom: Chatroom,
+        val chats: List<Chat>,
+        val project: Project?,
+        val avatars: Map<Int, String>
     )
 }
