@@ -32,10 +32,14 @@ import com.example.fundforgoals.feature.auth.registration.organisation.presentat
 import com.example.fundforgoals.feature.auth.registration.signup_choice.presentation.SignUpChoiceRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatViewModel
+import com.example.fundforgoals.feature.member.contribute.presentation.MemberContributeRoute
+import com.example.fundforgoals.feature.member.contribute.presentation.MemberContributeViewModel
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeViewModel
 import com.example.fundforgoals.feature.member.profile.presentation.MemberProfileRoute
 import com.example.fundforgoals.feature.member.profile.presentation.MemberProfileViewModel
+import com.example.fundforgoals.feature.organisation.contribute.presentation.OrganisationContributeRoute
+import com.example.fundforgoals.feature.organisation.contribute.presentation.OrganisationContributeViewModel
 import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeRoute
 import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeViewModel
 import com.example.fundforgoals.feature.organisation.profile.presentation.OrganisationProfileRoute
@@ -240,6 +244,26 @@ fun AppNavHost(
                     ) {
                         launchSingleTop = true
                     }
+                },
+                onContributeClick = { projectId ->
+                    navController.navigate(
+                        AppDestination.MemberContribute.createRoute(currentUser, projectId)
+                    )
+                }
+            )
+        }
+
+        composable(
+            route = AppDestination.MemberContribute.route,
+            arguments = listOf(
+                navArgument("currentUser") { type = NavType.StringType },
+                navArgument("projectId") { type = NavType.IntType }
+            )
+        ) {
+            MemberContributeRoute(
+                viewModel = viewModel<MemberContributeViewModel>(),
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -340,6 +364,11 @@ fun AppNavHost(
                         AppDestination.OrganisationProjectDetail.createRoute(projectId)
                     )
                 },
+                onContributeClick = { projectId ->
+                    navController.navigate(
+                        AppDestination.OrganisationContribute.createRoute(currentUser, projectId)
+                    )
+                },
                 onHomeClick = {
                     navController.navigate(
                         AppDestination.OrganisationHome.createRoute(currentUser)
@@ -361,6 +390,21 @@ fun AppNavHost(
                     ) {
                         launchSingleTop = true
                     }
+                }
+            )
+        }
+
+        composable(
+            route = AppDestination.OrganisationContribute.route,
+            arguments = listOf(
+                navArgument("currentUser") { type = NavType.StringType },
+                navArgument("projectId") { type = NavType.IntType }
+            )
+        ) {
+            OrganisationContributeRoute(
+                viewModel = viewModel<OrganisationContributeViewModel>(),
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

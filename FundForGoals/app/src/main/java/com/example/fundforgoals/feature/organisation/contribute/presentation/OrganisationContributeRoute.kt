@@ -1,4 +1,4 @@
-package com.example.fundforgoals.feature.member.contribute.presentation
+package com.example.fundforgoals.feature.organisation.contribute.presentation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -6,8 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun MemberContributeRoute(
-    viewModel: MemberContributeViewModel,
+fun OrganisationContributeRoute(
+    viewModel: OrganisationContributeViewModel,
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -18,11 +18,11 @@ fun MemberContributeRoute(
         }
     }
 
-    MemberContributeScreen(
+    OrganisationContributeScreen(
         uiState = uiState,
         onAction = { action ->
             when (action) {
-                MemberContributeAction.OnBackClick -> onBackClick()
+                OrganisationContributeAction.OnBackClick -> onBackClick()
                 else -> viewModel.onAction(action)
             }
         }

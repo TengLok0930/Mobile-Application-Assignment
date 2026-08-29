@@ -1,4 +1,4 @@
-package com.example.fundforgoals.feature.member.contribute.presentation
+package com.example.fundforgoals.feature.organisation.contribute.presentation
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class MemberContributeUiState(
+data class OrganisationContributeUiState(
     val currentUser: String,
     val selectedProjectId: Int,
     val project: Project? = null,
@@ -26,7 +26,7 @@ data class MemberContributeUiState(
     val submitSuccess: Boolean = false
 )
 
-class MemberContributeViewModel(
+class OrganisationContributeViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -41,12 +41,12 @@ class MemberContributeViewModel(
         checkNotNull(savedStateHandle["projectId"])
 
     private val _uiState = MutableStateFlow(
-        MemberContributeUiState(
+        OrganisationContributeUiState(
             currentUser = currentUser,
             selectedProjectId = selectedProjectId
         )
     )
-    val uiState: StateFlow<MemberContributeUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<OrganisationContributeUiState> = _uiState.asStateFlow()
 
     init {
         loadProject()
@@ -87,17 +87,17 @@ class MemberContributeViewModel(
         }
     }
 
-    fun onAction(action: MemberContributeAction) {
+    fun onAction(action: OrganisationContributeAction) {
         when (action) {
-            is MemberContributeAction.OnFundAmountChanged -> {
+            is OrganisationContributeAction.OnFundAmountChanged -> {
                 _uiState.update {
                     it.copy(fundAmountInput = action.value, errorMessage = null)
                 }
             }
 
-            MemberContributeAction.OnSubmitClick -> submitContribution()
+            OrganisationContributeAction.OnSubmitClick -> submitContribution()
 
-            MemberContributeAction.OnBackClick -> Unit
+            OrganisationContributeAction.OnBackClick -> Unit
         }
     }
 
