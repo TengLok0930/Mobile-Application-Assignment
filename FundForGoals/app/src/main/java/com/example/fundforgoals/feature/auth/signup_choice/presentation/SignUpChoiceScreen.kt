@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fundforgoals.R
+import com.example.fundforgoals.core.ui.components.navigation.BackButton
+import com.example.fundforgoals.feature.auth.forgotpassword.presentation.ForgotPasswordAction
 
 @Composable
 fun SignUpChoiceScreen(
@@ -135,15 +137,9 @@ private fun SignUpChoiceContent(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            IconButton(
+            BackButton(
                 onClick = { onAction(SignUpChoiceAction.OnBackClick) }
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.arrow_back_40px),
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
+            )
 
             Spacer(modifier = Modifier.height(64.dp))
 

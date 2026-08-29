@@ -21,6 +21,8 @@ import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequest
 import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestViewModel
 import com.example.fundforgoals.feature.admin.warning_detail.presentation.AdminWarningDetailRoute
 import com.example.fundforgoals.feature.admin.warning_detail.presentation.AdminWarningDetailViewModel
+import com.example.fundforgoals.feature.auth.changepassword.presentation.ChangePasswordRoute
+import com.example.fundforgoals.feature.auth.forgotpassword.presentation.ForgotPasswordRoute
 import com.example.fundforgoals.feature.auth.login.presentation.LoginRoute
 import com.example.fundforgoals.feature.auth.login.presentation.LoginViewModel
 import com.example.fundforgoals.feature.auth.registration.member.MemberRegRoute
@@ -82,7 +84,9 @@ fun AppNavHost(
             LoginRoute(
                 viewModel = loginViewModel,
                 onForgotPasswordClick = {
-                    // Navigate to forgot password screen
+                    navController.navigate(AppDestination.ForgotPassword.route) {
+                        launchSingleTop = true
+                    }
                 },
                 onSignUpClick = {
                     navController.navigate(AppDestination.SignUpChoice.route) {
@@ -113,6 +117,36 @@ fun AppNavHost(
                             launchSingleTop = true
                         }
                     }
+                }
+            )
+        }
+
+        composable(route = AppDestination.ForgotPassword.route) {
+            ForgotPasswordRoute(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onRequestSubmitted = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = AppDestination.ChangePassword.route,
+            arguments = listOf(
+                navArgument("currentUser") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentUser = backStackEntry.arguments?.getString("currentUser") ?: return@composable
+
+            ChangePasswordRoute(
+                username = currentUser,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onPasswordChanged = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -250,7 +284,9 @@ fun AppNavHost(
                     onToggleTheme()
                 },
                 onChangePasswordClick = {
-                    // Add change password destination later
+                    navController.navigate(AppDestination.ChangePassword.createRoute(currentUser)) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -369,7 +405,9 @@ fun AppNavHost(
                     }
                 },
                 onChangePasswordClick = {
-                    // Add change password screen later
+                    navController.navigate(AppDestination.ChangePassword.createRoute(currentUser)) {
+                        launchSingleTop = true
+                    }
                 },
                 onAppearanceClick = {
                     onToggleTheme()
@@ -494,7 +532,14 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onChangePasswordClick = {},
+                onChangePasswordClick = {
+                    val currentUser = sessionManager.getUsername().orEmpty()
+                    if (currentUser.isNotBlank()) {
+                        navController.navigate(AppDestination.ChangePassword.createRoute(currentUser)) {
+                            launchSingleTop = true
+                        }
+                    }
+                },
                 onAppearanceClick = {
                     onToggleTheme()
                 },

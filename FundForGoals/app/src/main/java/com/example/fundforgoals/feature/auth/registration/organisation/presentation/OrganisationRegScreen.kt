@@ -41,9 +41,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fundforgoals.R
+import com.example.fundforgoals.core.ui.components.navigation.BackButton
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import com.example.fundforgoals.core.ui.theme.FundForGoalsTheme
+import com.example.fundforgoals.feature.auth.forgotpassword.presentation.ForgotPasswordAction
 
 @Composable
 fun OrganisationRegScreen(
@@ -85,15 +87,9 @@ fun OrganisationRegScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start
             ) {
-                IconButton(
+                BackButton(
                     onClick = { onAction(OrganisationRegAction.OnBackClick) }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.arrow_back_40px),
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))

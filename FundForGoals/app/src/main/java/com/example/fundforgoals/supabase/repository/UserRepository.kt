@@ -119,4 +119,21 @@ class UserRepository {
             }
             .decodeList<User>()
     }
+            
+    suspend fun updateUserPassword(
+        id: Int,
+        newPassword: String
+    ): User {
+        return supabase
+            .from("user")
+            .update(
+                mapOf("password" to newPassword)
+            ) {
+                filter {
+                    eq("id", id)
+                }
+                select()
+            }
+            .decodeSingle<User>()
+    }
 }
