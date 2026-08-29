@@ -32,15 +32,12 @@ import com.example.fundforgoals.feature.auth.registration.organisation.presentat
 import com.example.fundforgoals.feature.auth.registration.signup_choice.presentation.SignUpChoiceRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatRoute
 import com.example.fundforgoals.feature.chat.presentation.ChatViewModel
-import com.example.fundforgoals.feature.member.contributions.presentation.MemberContributionsRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeRoute
 import com.example.fundforgoals.feature.member.home.presentation.MemberHomeViewModel
 import com.example.fundforgoals.feature.member.profile.presentation.MemberProfileRoute
 import com.example.fundforgoals.feature.member.profile.presentation.MemberProfileViewModel
-import com.example.fundforgoals.feature.member.project_detail.presentation.MemberProjectDetailRoute
 import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeRoute
 import com.example.fundforgoals.feature.organisation.home.presentation.OrganisationHomeViewModel
-import com.example.fundforgoals.feature.organisation.pastprojects.presentation.OrganisationPastProjectsRoute
 import com.example.fundforgoals.feature.organisation.profile.presentation.OrganisationProfileRoute
 import com.example.fundforgoals.feature.organisation.profile.presentation.OrganisationProfileViewModel
 import com.example.fundforgoals.feature.organisation.viewProject.ViewProjectRoute
@@ -294,34 +291,6 @@ fun AppNavHost(
             )
         }
 
-        composable(route = AppDestination.MemberContributions.route) {
-            MemberContributionsRoute(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onMessagesClick = { currentUser ->
-                    navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
-                        launchSingleTop = true
-                    }
-                },
-                onHomeClick = {
-                    val currentUser = sessionManager.getUsername().orEmpty()
-                    navController.navigate(AppDestination.MemberHome.createRoute(currentUser)) {
-                        launchSingleTop = true
-                    }
-                },
-                onProfileClick = {
-                    navController.navigate(AppDestination.MemberProfile.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onContributionClick = { contributionId ->
-                },
-                onECertClick = { contributionId ->
-                }
-            )
-        }
-
         composable(route = AppDestination.OrganisationHome.route,
             arguments = listOf(
                 navArgument("currentUser") { type = NavType.StringType }
@@ -444,33 +413,6 @@ fun AppNavHost(
                     onToggleTheme()
                 },
                 isDarkTheme = isDarkTheme
-            )
-        }
-
-        composable(route = AppDestination.OrganisationPastProjects.route) {
-            OrganisationPastProjectsRoute(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onMessagesClick = { currentUser ->
-                    navController.navigate(AppDestination.Chat.createRoute(currentUser)) {
-                        launchSingleTop = true
-                    }
-                },
-                onHomeClick = {
-                    val currentUser = sessionManager.getUsername().orEmpty()
-                    navController.navigate(AppDestination.OrganisationHome.createRoute(currentUser)) {
-                        launchSingleTop = true
-                    }
-                },
-                onProfileClick = {
-                    navController.navigate(AppDestination.OrganisationProfile.route) {
-                        popUpTo(AppDestination.OrganisationProfile.route) {
-                            inclusive = false
-                        }
-                        launchSingleTop = true
-                    }
-                }
             )
         }
 
@@ -651,26 +593,6 @@ fun AppNavHost(
                     } else {
                         navController.popBackStack()
                     }
-                }
-            )
-        }
-
-        composable(
-            route = AppDestination.MemberProjectDetail.route,
-            arguments = listOf(
-                navArgument("projectId") {
-                    type = NavType.StringType
-                }
-            )
-        ) { backStackEntry ->
-            val projectId = backStackEntry.arguments?.getString("projectId").orEmpty()
-
-            MemberProjectDetailRoute(
-                projectId = projectId,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onContributeClick = {
                 }
             )
         }

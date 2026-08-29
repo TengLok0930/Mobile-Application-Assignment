@@ -27,15 +27,22 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -46,6 +53,7 @@ import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import com.example.fundforgoals.core.util.ContentType
 import coil.compose.AsyncImage
+import com.example.fundforgoals.R
 
 @Composable
 fun MemberProfileScreen(
@@ -75,6 +83,8 @@ private fun MemberProfileCompactScreen(
     onAction: (MemberProfileAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showContributions by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         modifier = modifier
             .statusBarsPadding()
@@ -96,14 +106,41 @@ private fun MemberProfileCompactScreen(
                 .padding(innerPadding),
             color = MaterialTheme.colorScheme.background
         ) {
-            MemberProfileMainPane(
-                uiState = uiState,
-                onAction = onAction,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                showContributionHeader = false
-            )
+            if (!showContributions) {
+                MemberProfileMainPane(
+                    uiState = uiState,
+                    onAction = { action ->
+                        if (action == MemberProfileAction.OnViewContributionsClick) {
+                            showContributions = true
+                        } else {
+                            onAction(action)
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    showContributionHeader = false
+                )
+            } else {
+                Column(modifier = Modifier.fillMaxSize()
+                    .padding(innerPadding)) {
+                    IconButton(
+                        onClick = { showContributions = false }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back_40px),
+                            contentDescription = "Back"
+                        )
+                    }
+
+                    MemberProfileContributionPane(
+                        uiState = uiState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 4.dp)
+                    )
+                }
+            }
         }
     }
 }

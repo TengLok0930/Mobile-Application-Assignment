@@ -23,11 +23,13 @@ class ContributorRepository {
 
     suspend fun addContributor(
         userId: Int,
-        projectId: Int
+        projectId: Int,
+        fundAmount: Double
     ) {
         val request = CreateContributorRequest(
             userId = userId,
-            project = projectId
+            project = projectId,
+            fundAmount = fundAmount
         )
 
         supabase
@@ -45,7 +47,8 @@ class ContributorRepository {
 
         val request = UpdateContributorRequest(
             userId = contributor.userId,
-            project = contributor.project
+            project = contributor.project,
+            fundAmount = contributor.fundAmount
         )
 
         supabase
@@ -67,5 +70,23 @@ class ContributorRepository {
                     eq("id", contributorId)
                 }
             }
+    }
+
+    suspend fun getContributorsByProjectIds(projectIds: List<Int>): List<Contributor> {
+        if (projectIds.isEmpty()) return emptyList()
+        return supabase
+            .from("contributor")
+            .select {
+                filter {
+                    isIn("project", projectIds)
+                }
+            }
+            .decodeList<Contributor>()
+    }
+
+    suspend fun getTotalFundsByProjectIds(projectIds: List<Int>): Map<Int, Double> {
+        return getContributorsByProjectIds(projectIds)
+            .groupBy { it.project }
+            .mapValues { (_, contributors) -> contributors.sumOf { it.fundAmount } }
     }
 }

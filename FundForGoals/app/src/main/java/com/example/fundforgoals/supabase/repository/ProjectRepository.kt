@@ -23,10 +23,9 @@ class ProjectRepository {
             desc = project.desc,
             createdBy = project.createdBy,
             fundGoal = project.fundGoal,
-            currentFund = project.currentFund,
             avatarUrl = project.avatarUrl,
-            isApproved = project.isApproved,
-            status = project.status
+            status = project.status,
+            hasCert = project.hasCert
         )
 
         supabase
@@ -42,10 +41,9 @@ class ProjectRepository {
             title = project.title,
             desc = project.desc,
             fundGoal = project.fundGoal,
-            currentFund = project.currentFund,
             avatarUrl = project.avatarUrl,
-            isApproved = project.isApproved,
-            status = project.status
+            status = project.status,
+            hasCert = project.hasCert
         )
 
         supabase
@@ -96,6 +94,18 @@ class ProjectRepository {
             .select {
                 filter {
                     eq("status", "Ongoing")
+                }
+            }
+            .decodeList<Project>()
+    }
+
+    suspend fun getProjectsByIds(ids: List<Int>): List<Project> {
+        if (ids.isEmpty()) return emptyList()
+        return supabase
+            .from("project")
+            .select {
+                filter {
+                    isIn("id", ids)
                 }
             }
             .decodeList<Project>()

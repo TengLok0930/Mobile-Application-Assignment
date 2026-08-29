@@ -217,6 +217,16 @@ private fun ChatDetailScreen(
                     .padding(bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.padding(start = 12.dp, top = 4.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.arrow_back_40px),
+                        contentDescription = "Back"
+                    )
+                }
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Chatroom",

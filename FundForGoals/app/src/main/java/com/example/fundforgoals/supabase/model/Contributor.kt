@@ -8,19 +8,25 @@ data class Contributor(
     val id: Int? = null,
     @SerialName("userid")
     val userId: Int,
-    val project: Int
+    val project: Int,
+    @SerialName("fund_amount")
+    val fundAmount: Double
 )
 
 @Serializable
 data class CreateContributorRequest(
     @SerialName("userid")
     val userId: Int,
-    val project: Int
+    val project: Int,
+    @SerialName("fund_amount")
+    val fundAmount: Double
 )
 
 @Serializable
 data class UpdateContributorRequest(
     @SerialName("userid")
     val userId: Int,
-    val project: Int
+    val project: Int,
+    @SerialName("fund_amount")
+    val fundAmount: Double
 )

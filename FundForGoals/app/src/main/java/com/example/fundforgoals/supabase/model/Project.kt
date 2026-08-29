@@ -20,16 +20,12 @@ data class Project(
     @SerialName("fund_goal")
     val fundGoal: Double,
 
-    @SerialName("current_fund")
-    val currentFund: Double,
-
     @SerialName("avatar_url")
     val avatarUrl: String,
 
-    @SerialName("is_approved")
-    val isApproved: Boolean,
+    val status: String? = null,
 
-    val status: String? = null
+    val hasCert: Boolean
 )
 
 @Serializable
@@ -43,16 +39,12 @@ data class CreateProjectRequest(
     @SerialName("fund_goal")
     val fundGoal: Double,
 
-    @SerialName("current_fund")
-    val currentFund: Double,
-
     @SerialName("avatar_url")
     val avatarUrl: String,
 
-    @SerialName("is_approved")
-    val isApproved: Boolean,
+    val status: String? = null,
 
-    val status: String? = null
+    val hasCert: Boolean
 )
 
 @Serializable
@@ -63,14 +55,10 @@ data class UpdateProjectRequest(
     @SerialName("fund_goal")
     val fundGoal: Double,
 
-    @SerialName("current_fund")
-    val currentFund: Double,
-
     @SerialName("avatar_url")
     val avatarUrl: String,
 
-    @SerialName("is_approved")
-    val isApproved: Boolean,
+    val status: String? = null,
 
-    val status: String? = null
+    val hasCert: Boolean
 )

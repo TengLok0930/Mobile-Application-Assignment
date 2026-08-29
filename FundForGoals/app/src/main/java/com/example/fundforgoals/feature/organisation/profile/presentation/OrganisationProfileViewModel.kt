@@ -3,7 +3,8 @@ package com.example.fundforgoals.feature.organisation.profile.presentation
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fundforgoals.feature.member.profile.presentation.MemberContributionUi
+import com.example.fundforgoals.supabase.repository.MemberContributionData
+import com.example.fundforgoals.supabase.repository.MemberContributionRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,57 +38,13 @@ class OrganisationProfileViewModel(
 ) : ViewModel() {
 
     private val userRepository = UserRepository()
+    private val contributionRepository = MemberContributionRepository()
 
     private val currentUser: String =
         checkNotNull(savedStateHandle["currentUser"])
 
-    private val ongoingItems = listOf(
-        OrganisationContributionUi(
-            id = "1",
-            projectTitle = "Clean Water Project",
-            organisationName = "Helping Hands",
-            amountText = "RM 50.00",
-            isOngoing = true,
-            hasECertificate = false
-        ),
-        OrganisationContributionUi(
-            id = "2",
-            projectTitle = "School Supplies Drive",
-            organisationName = "Care For All",
-            amountText = "RM 35.00",
-            isOngoing = true,
-            hasECertificate = false
-        )
-    )
-
-    private val pastItems = listOf(
-        OrganisationContributionUi(
-            id = "3",
-            projectTitle = "Food Relief Mission",
-            organisationName = "Kindness Hub",
-            amountText = "RM 100.00",
-            isOngoing = false,
-            hasECertificate = true
-        ),
-        OrganisationContributionUi(
-            id = "4",
-            projectTitle = "Flood Recovery Fund",
-            organisationName = "Relief Network",
-            amountText = "RM 75.00",
-            isOngoing = false,
-            hasECertificate = true
-        )
-    )
-
     private val _uiState = MutableStateFlow(
-        OrganisationProfileUiState(
-            currentUser = currentUser,
-            ongoingContributions = ongoingItems,
-            pastContributions = pastItems,
-            isDarkMode = false,
-            notificationsEnabled = true,
-            isLoading = false
-        )
+        OrganisationProfileUiState(currentUser = currentUser)
     )
     val uiState: StateFlow<OrganisationProfileUiState> = _uiState.asStateFlow()
 
@@ -97,9 +54,7 @@ class OrganisationProfileViewModel(
 
     private fun loadProfile() {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(isLoading = true, errorMessage = null)
-            }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             runCatching {
                 userRepository.getUserByUsername(currentUser)
@@ -112,6 +67,7 @@ class OrganisationProfileViewModel(
                         isLoading = false
                     )
                 }
+                loadContributions(userId = user.id ?: return@onSuccess)
             }.onFailure { exception ->
                 _uiState.update {
                     it.copy(
@@ -123,10 +79,39 @@ class OrganisationProfileViewModel(
         }
     }
 
-    fun setDarkMode(isDarkTheme: Boolean) {
-        _uiState.update { current ->
-            current.copy(isDarkMode = isDarkTheme)
+    private fun loadContributions(userId: Int) {
+        viewModelScope.launch {
+            runCatching {
+                contributionRepository.getContributionsForUser(userId)
+            }.onSuccess { contributions ->
+                val (ongoing, past) = contributions.partition { it.isOngoing }
+                _uiState.update {
+                    it.copy(
+                        ongoingContributions = ongoing.toUi(),
+                        pastContributions = past.toUi()
+                    )
+                }
+            }.onFailure { exception ->
+                _uiState.update {
+                    it.copy(errorMessage = exception.message ?: "Failed to load contributions")
+                }
+            }
         }
+    }
+
+    private fun List<MemberContributionData>.toUi(): List<OrganisationContributionUi> = map { data ->
+        OrganisationContributionUi(
+            id = data.contributorId.toString(),
+            projectTitle = data.projectTitle,
+            organisationName = data.organisationName,
+            amountText = "RM %.2f".format(data.fundAmount),
+            isOngoing = data.isOngoing,
+            hasECertificate = data.hasECertificate
+        )
+    }
+
+    fun setDarkMode(isDarkTheme: Boolean) {
+        _uiState.update { it.copy(isDarkMode = isDarkTheme) }
     }
 
     fun onAction(action: OrganisationProfileAction) {
@@ -148,12 +133,6 @@ class OrganisationProfileViewModel(
 
             OrganisationProfileAction.Refresh -> {
                 loadProfile()
-                _uiState.update {
-                    it.copy(
-                        ongoingContributions = ongoingItems,
-                        pastContributions = pastItems
-                    )
-                }
             }
         }
     }

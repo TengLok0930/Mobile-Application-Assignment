@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fundforgoals.supabase.model.Project
+import com.example.fundforgoals.supabase.repository.ContributorRepository
 import com.example.fundforgoals.supabase.repository.ProjectRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +20,7 @@ data class OrganisationHomeUiState(
     val selectedFilter: String = "Newest",
     val projects: List<Project> = emptyList(),
     val creatorNames: Map<Int, String> = emptyMap(),
+    val projectFunds: Map<Int, Double> = emptyMap(),
     val selectedProjectId: Int? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
@@ -48,14 +50,12 @@ class OrganisationHomeViewModel(
         loadProjects()
     }
 
+    private val contributorRepository = ContributorRepository()
+    private var projectFunds: Map<Int, Double> = emptyMap()
+
     private fun loadProjects() {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isLoading = true,
-                    errorMessage = null
-                )
-            }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
                 val user = userRepository.getUserByUsername(currentUser)
@@ -64,24 +64,22 @@ class OrganisationHomeViewModel(
                     projectRepository.getProjectsByUser(userId)
                 } ?: emptyList()
 
-                val creatorIds = allProjects
-                    .map { it.createdBy }
-                    .distinct()
-
+                val creatorIds = allProjects.map { it.createdBy }.distinct()
                 creatorNames = creatorIds
                     .mapNotNull { creatorId ->
-                        val creator = userRepository.getUserById(creatorId)
-                        creator?.name?.let { creatorName ->
-                            creatorId to creatorName
-                        }
+                        userRepository.getUserById(creatorId)?.name?.let { creatorId to it }
                     }
                     .toMap()
+
+                val projectIds = allProjects.mapNotNull { it.id }
+                projectFunds = contributorRepository.getTotalFundsByProjectIds(projectIds)
 
                 _uiState.update {
                     it.copy(
                         loginOrganisation = user?.name ?: currentUser,
                         projects = allProjects,
                         creatorNames = creatorNames,
+                        projectFunds = projectFunds,
                         selectedProjectId = allProjects.firstOrNull()?.id,
                         isLoading = false
                     )
