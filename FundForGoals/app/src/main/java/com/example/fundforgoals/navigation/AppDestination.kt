@@ -29,6 +29,10 @@ sealed class AppDestination(val route: String) {
         fun createRoute(currentUser: String) = "organisation_home/$currentUser"
     }
 
+    data object OrganisationCreateProject : AppDestination("organisation_create_project/{currentUser}") {
+        fun createRoute(currentUser: String) = "organisation_create_project/$currentUser"
+    }
+
     data object OrganisationViewProject : AppDestination("organisation_view_project/{currentUser}") {
         fun createRoute(currentUser: String) = "organisation_view_project/$currentUser"
     }
@@ -43,6 +47,10 @@ sealed class AppDestination(val route: String) {
         fun createRoute(currentUser: String): String {
             return "chat/$currentUser"
         }
+    }
+
+    data object AdminChatroom : AppDestination("admin_chatroom/{currentUser}/{projectId}") {
+        fun createRoute(currentUser: String, projectId: Int) = "admin_chatroom/$currentUser/$projectId"
     }
 
     data object MemberProjectDetail :

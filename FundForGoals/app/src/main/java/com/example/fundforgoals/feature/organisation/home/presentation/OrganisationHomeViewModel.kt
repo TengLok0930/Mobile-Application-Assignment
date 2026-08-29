@@ -61,7 +61,7 @@ class OrganisationHomeViewModel(
                 val user = userRepository.getUserByUsername(currentUser)
 
                 allProjects = user?.id?.let { userId ->
-                    projectRepository.getProjectsByUser(userId)
+                    projectRepository.getProjectsByOwnUserOngoing(userId)
                 } ?: emptyList()
 
                 val creatorIds = allProjects.map { it.createdBy }.distinct()
