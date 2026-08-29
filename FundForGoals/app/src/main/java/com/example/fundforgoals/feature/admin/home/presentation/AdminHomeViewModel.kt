@@ -1,150 +1,158 @@
 package com.example.fundforgoals.feature.admin.home.presentation
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.fundforgoals.supabase.repository.ProjectRepository
+import com.example.fundforgoals.supabase.repository.UserRepository
+import com.example.fundforgoals.supabase.repository.WarningRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-
-enum class AdminDetailPane {
-    MONITOR,
-    WARNING
-}
+import kotlinx.coroutines.launch
 
 data class AdminProjectUi(
-    val id: String,
+    val id: Int,
     val title: String,
     val organisation: String,
-    val overview: String = "",
-    val warningCount: Int = 0,
-    val incidentTitle: String = "",
-    val warningDetails: String = ""
+    val overview: String,
+    val warningCount: Int,
+    val warningDetails: String,
+    val avatarUrl: String
 )
 
 data class AdminHomeUiState(
     val searchQuery: String = "",
     val projects: List<AdminProjectUi> = emptyList(),
-    val selectedProject: AdminProjectUi? = null,
-    val activeDetailPane: AdminDetailPane = AdminDetailPane.MONITOR,
+    val selectedProjectId: Int? = null,
     val isLoading: Boolean = false,
+    val isCancelling: Boolean = false,
     val errorMessage: String? = null
-)
+) {
+    val selectedProject: AdminProjectUi?
+        get() = projects.firstOrNull { it.id == selectedProjectId }
+}
 
 class AdminHomeViewModel : ViewModel() {
 
-    private val allProjects = listOf(
-        AdminProjectUi(
-            id = "1",
-            title = "Project 1",
-            organisation = "Organisation 1",
-            overview = "This project requires admin monitoring due to recent activity and warning reports.",
-            warningCount = 1,
-            incidentTitle = "What happened to Project 1",
-            warningDetails = "A warning was raised because the project timeline slipped and recent updates from the organisation were incomplete."
-        ),
-        AdminProjectUi(
-            id = "2",
-            title = "Project 2",
-            organisation = "Organisation 1",
-            overview = "This project has multiple warning signals and may need direct admin intervention.",
-            warningCount = 2,
-            incidentTitle = "What happened to Project 2",
-            warningDetails = "Two reports flagged this project for delayed milestones and inconsistent communication."
-        ),
-        AdminProjectUi(
-            id = "3",
-            title = "Project 3",
-            organisation = "Organisation 2",
-            overview = "This project is stable but still available for admin monitoring.",
-            warningCount = 0,
-            incidentTitle = "What happened to Project 3",
-            warningDetails = "No warning details are currently available for this project."
-        )
-    )
+    private val projectRepository = ProjectRepository()
+    private val userRepository = UserRepository()
+    private val warningRepository = WarningRepository()
 
-    private val _uiState = MutableStateFlow(
-        AdminHomeUiState(
-            projects = allProjects,
-            isLoading = false
-        )
-    )
+    private var allProjectUis: List<AdminProjectUi> = emptyList()
+
+    private val _uiState = MutableStateFlow(AdminHomeUiState())
     val uiState: StateFlow<AdminHomeUiState> = _uiState.asStateFlow()
+
+    init {
+        loadProjects()
+    }
+
+    private fun loadProjects() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            try {
+                val projects = projectRepository.getOngoingProjects()
+
+                val creatorIds = projects.map { it.createdBy }.distinct()
+                val creatorNames = creatorIds
+                    .mapNotNull { creatorId ->
+                        userRepository.getUserById(creatorId)?.name?.let { creatorId to it }
+                    }
+                    .toMap()
+
+                val projectIds = projects.mapNotNull { it.id }
+                val warningsByProject = warningRepository
+                    .getWarningsByProjectIds(projectIds)
+                    .groupBy { it.projectId }
+
+                allProjectUis = projects.mapNotNull { project ->
+                    project.id?.let { id ->
+                        val projectWarnings = warningsByProject[id].orEmpty()
+                        AdminProjectUi(
+                            id = id,
+                            title = project.title,
+                            organisation = creatorNames[project.createdBy].orEmpty(),
+                            overview = project.desc,
+                            warningCount = projectWarnings.size,
+                            warningDetails = projectWarnings.maxByOrNull { it.createdAt }?.details
+                                ?: "No warning details are currently available for this project.",
+                            avatarUrl = project.avatarUrl
+                        )
+                    }
+                }
+
+                _uiState.update { current ->
+                    val stillExists = allProjectUis.any { it.id == current.selectedProjectId }
+                    current.copy(
+                        projects = allProjectUis,
+                        selectedProjectId = if (stillExists) current.selectedProjectId else null,
+                        isLoading = false
+                    )
+                }
+            } catch (exception: Exception) {
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = exception.message ?: "Failed to load projects")
+                }
+            }
+        }
+    }
 
     fun onAction(action: AdminHomeAction) {
         when (action) {
             is AdminHomeAction.OnSearchQueryChanged -> onSearchQueryChanged(action.value)
-            is AdminHomeAction.OnMonitorClick -> onMonitorClick(action.projectId)
 
-            AdminHomeAction.OnWarnProjectClick -> {
-                _uiState.update { it.copy(activeDetailPane = AdminDetailPane.WARNING) }
+            is AdminHomeAction.OnMonitorClick -> {
+                _uiState.update { it.copy(selectedProjectId = action.projectId) }
             }
 
-            AdminHomeAction.OnBackClick -> {
-                _uiState.update { current ->
-                    if (current.activeDetailPane == AdminDetailPane.WARNING) {
-                        current.copy(activeDetailPane = AdminDetailPane.MONITOR)
-                    } else {
-                        current.copy(selectedProject = null)
-                    }
-                }
-            }
+            AdminHomeAction.OnCancelProjectClick -> cancelSelectedProject()
 
-            AdminHomeAction.OnWarnOrganisationClick -> Unit
-            AdminHomeAction.OnCancelProjectClick -> Unit
-            AdminHomeAction.OnViewChatroomClick -> Unit
             AdminHomeAction.OnRequestClick -> Unit
             AdminHomeAction.OnHomeClick -> Unit
             AdminHomeAction.OnProfileClick -> Unit
-
-            AdminHomeAction.Refresh -> {
-                _uiState.update {
-                    it.copy(
-                        searchQuery = "",
-                        projects = allProjects,
-                        selectedProject = null,
-                        activeDetailPane = AdminDetailPane.MONITOR,
-                        errorMessage = null
-                    )
-                }
-            }
+            AdminHomeAction.Refresh -> loadProjects()
         }
     }
 
-    private fun onMonitorClick(projectId: String) {
-        _uiState.update { current ->
-            val selected = allProjects.find { it.id == projectId }
-            current.copy(
-                selectedProject = selected,
-                activeDetailPane = AdminDetailPane.MONITOR
-            )
+    private fun cancelSelectedProject() {
+        val projectId = _uiState.value.selectedProjectId ?: return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCancelling = true, errorMessage = null) }
+
+            try {
+                val project = projectRepository.getProjectById(projectId)
+                    ?: throw IllegalStateException("Project not found")
+
+                projectRepository.modifyProject(project.copy(status = "Cancelled"))
+                _uiState.update { it.copy(isCancelling = false) }
+                loadProjects()
+            } catch (exception: Exception) {
+                _uiState.update {
+                    it.copy(isCancelling = false, errorMessage = exception.message ?: "Failed to cancel project")
+                }
+            }
         }
     }
 
     private fun onSearchQueryChanged(query: String) {
-        val filteredProjects = if (query.isBlank()) {
-            allProjects
+        val filtered = if (query.isBlank()) {
+            allProjectUis
         } else {
-            allProjects.filter { project ->
+            allProjectUis.filter { project ->
                 project.title.contains(query, ignoreCase = true) ||
                         project.organisation.contains(query, ignoreCase = true)
             }
         }
 
         _uiState.update { current ->
-            val selectedStillExists = current.selectedProject?.id?.let { id ->
-                filteredProjects.find { it.id == id }
-            }
-
+            val stillExists = filtered.any { it.id == current.selectedProjectId }
             current.copy(
                 searchQuery = query,
-                projects = filteredProjects,
-                selectedProject = selectedStillExists,
-                errorMessage = null,
-                activeDetailPane = if (selectedStillExists == null) {
-                    AdminDetailPane.MONITOR
-                } else {
-                    current.activeDetailPane
-                }
+                projects = filtered,
+                selectedProjectId = if (stillExists) current.selectedProjectId else null
             )
         }
     }
