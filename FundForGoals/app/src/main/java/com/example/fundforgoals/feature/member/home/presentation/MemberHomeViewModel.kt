@@ -57,7 +57,13 @@ class MemberHomeViewModel(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
-                allProjects = projectRepository.getOngoingProjects()
+                val currentUserId = userRepository.getUserByUsername(currentUser)?.id
+
+                val contributedProjectIds = currentUserId?.let { userId ->
+                    contributorRepository.getContributorsByUserId(userId).map { it.project }
+                } ?: emptyList()
+
+                allProjects = projectRepository.getContributableProjects(contributedProjectIds)
 
                 val creatorIds = allProjects.map { it.createdBy }.distinct()
                 creatorNames = creatorIds

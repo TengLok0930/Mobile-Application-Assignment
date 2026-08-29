@@ -110,4 +110,10 @@ class ProjectRepository {
             }
             .decodeList<Project>()
     }
+
+    suspend fun getContributableProjects(excludeProjectIds: List<Int>): List<Project> {
+        val ongoingProjects = getOngoingProjects()
+        if (excludeProjectIds.isEmpty()) return ongoingProjects
+        return ongoingProjects.filterNot { it.id in excludeProjectIds }
+    }
 }

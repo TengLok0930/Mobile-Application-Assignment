@@ -14,13 +14,9 @@ import androidx.navigation.navArgument
 import com.example.fundforgoals.core.session.SessionManager
 import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeRoute
 import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeViewModel
-import com.example.fundforgoals.feature.admin.monitor_detail.presentation.AdminMonitorDetailRoute
-import com.example.fundforgoals.feature.admin.monitor_detail.presentation.AdminMonitorDetailViewModel
 import com.example.fundforgoals.feature.admin.profile.presentation.AdminProfileRoute
 import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestRoute
 import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestViewModel
-import com.example.fundforgoals.feature.admin.warning_detail.presentation.AdminWarningDetailRoute
-import com.example.fundforgoals.feature.admin.warning_detail.presentation.AdminWarningDetailViewModel
 import com.example.fundforgoals.feature.auth.changepassword.presentation.ChangePasswordRoute
 import com.example.fundforgoals.feature.auth.forgotpassword.presentation.ForgotPasswordRoute
 import com.example.fundforgoals.feature.auth.login.presentation.LoginRoute
@@ -472,61 +468,25 @@ fun AppNavHost(
                     navController.navigate(AppDestination.AdminProfile.route) {
                         launchSingleTop = true
                     }
-                }
-            )
-        }
-
-        composable(
-            route = AppDestination.AdminMonitorDetail.route,
-            arguments = listOf(
-                navArgument("projectId") {
-                    type = NavType.StringType
-                }
-            )
-        ) { backStackEntry ->
-            val projectId = backStackEntry.arguments?.getString("projectId").orEmpty()
-
-            AdminMonitorDetailRoute(
-                projectId = projectId,
-                onBackClick = {
-                    navController.popBackStack()
                 },
-                onCancelProjectClick = {
-                },
-                onWarnProjectClick = {
+                onMonitorClick = { projectId ->
                     navController.navigate(
-                        AppDestination.AdminWarningDetail.createRoute(projectId)
-                    ) {
-                        launchSingleTop = true
-                    }
+                        AppDestination.AdminMonitorDetail.createRoute(projectId.toString())
+                    ) { launchSingleTop = true }
                 },
-                onViewChatroomClick = {
-                    navController.navigate(AppDestination.Chat.route) {
-                        launchSingleTop = true
-                    }
+                onWarnProjectClick = { projectId ->
+                    navController.navigate(
+                        AppDestination.AdminWarningDetail.createRoute(projectId.toString())
+                    ) { launchSingleTop = true }
                 },
-                viewModel = viewModel<AdminMonitorDetailViewModel>()
-            )
-        }
-
-        composable(
-            route = AppDestination.AdminWarningDetail.route,
-            arguments = listOf(
-                navArgument("projectId") {
-                    type = NavType.StringType
+                onViewChatroomClick = { projectId ->
+                    val adminUsername = sessionManager.getUsername().orEmpty()
+                    if (adminUsername.isNotBlank()) {
+                        navController.navigate(AppDestination.Chat.createRoute(adminUsername)) {
+                            launchSingleTop = true
+                        }
+                    }
                 }
-            )
-        ) { backStackEntry ->
-            val projectId = backStackEntry.arguments?.getString("projectId").orEmpty()
-
-            AdminWarningDetailRoute(
-                projectId = projectId,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onWarnOrganisationClick = {
-                },
-                viewModel = viewModel<AdminWarningDetailViewModel>()
             )
         }
 

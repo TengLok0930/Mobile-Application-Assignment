@@ -11,16 +11,20 @@ data class Warning(
     val createdAt: String,
 
     val details: String,
+
+    @SerialName("project_id")
     val projectId: Int
 )
 
 @Serializable
-data class CreateWarningRequest (
+data class CreateWarningRequest(
     val details: String,
+
+    @SerialName("project_id")
     val projectId: Int
 )
 
 @Serializable
 data class UpdateWarningRequest(
-    val details: String,
+    val details: String
 )
