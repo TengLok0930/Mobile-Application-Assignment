@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.fundforgoals.ai.GeminiRepository
 import com.example.fundforgoals.supabase.model.ProjectRequest
 import com.example.fundforgoals.supabase.model.UserRequest
+import com.example.fundforgoals.supabase.repository.ProjectRepository
 import com.example.fundforgoals.supabase.repository.ProjectRequestRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
 import com.example.fundforgoals.supabase.repository.UserRequestRepository
@@ -55,6 +56,7 @@ class AdminRequestViewModel : ViewModel() {
     private val geminiRepository = GeminiRepository()
     private val userRepository = UserRepository()
     private val userRequestRepository = UserRequestRepository()
+    private val projectRepository = ProjectRepository()
     private val projectRequestRepository = ProjectRequestRepository()
 
     private var rawUserRequests: List<UserRequest> = emptyList()
@@ -384,6 +386,19 @@ class AdminRequestViewModel : ViewModel() {
                         projectRequestRepository.modifyProjectRequest(
                             existingRequest.copy(status = newStatus)
                         )
+
+                        val newProjectStatus = when (newStatus.lowercase()) {
+                            "approved" -> "Ongoing"
+                            "rejected" -> "Cancelled"
+                            else -> null
+                        }
+
+                        if (newProjectStatus != null) {
+                            projectRepository.updateProjectStatus(
+                                id = existingRequest.projectId,
+                                status = newProjectStatus
+                            )
+                        }
                     }
 
                     else -> throw IllegalArgumentException("Unknown request type.")

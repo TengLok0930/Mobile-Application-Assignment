@@ -6,6 +6,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -23,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -37,6 +39,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,9 +47,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.fundforgoals.app.navigation.AppBottomBar
 import com.example.fundforgoals.app.navigation.AppNavigationRail
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
@@ -337,6 +343,16 @@ private fun MemberProfileContributionPane(
     uiState: MemberProfileUiState,
     modifier: Modifier = Modifier
 ) {
+    var selectedECertContribution by remember { mutableStateOf<MemberContributionUi?>(null) }
+
+    selectedECertContribution?.let { contribution ->
+        ECertificateDialog(
+            memberName = uiState.memberName,
+            contribution = contribution,
+            onDismiss = { selectedECertContribution = null }
+        )
+    }
+
     when {
         uiState.isLoading -> {
             Box(
@@ -383,7 +399,10 @@ private fun MemberProfileContributionPane(
                 }
 
                 items(uiState.ongoingContributions) { contribution ->
-                    MemberContributionCard(contribution = contribution)
+                    MemberContributionCard(
+                        contribution = contribution,
+                        onViewECertClick = { selectedECertContribution = it }
+                    )
                 }
 
                 item {
@@ -398,7 +417,10 @@ private fun MemberProfileContributionPane(
                 }
 
                 items(uiState.pastContributions) { contribution ->
-                    MemberContributionCard(contribution = contribution)
+                    MemberContributionCard(
+                        contribution = contribution,
+                        onViewECertClick = { selectedECertContribution = it }
+                    )
                 }
             }
         }
@@ -495,7 +517,8 @@ private fun MemberProfileSettingRow(
 
 @Composable
 private fun MemberContributionCard(
-    contribution: MemberContributionUi
+    contribution: MemberContributionUi,
+    onViewECertClick: (MemberContributionUi) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -554,11 +577,116 @@ private fun MemberContributionCard(
                         color = MaterialTheme.colorScheme.tertiary
                     )
                 } else if (contribution.hasECertificate) {
+                    TextButton(
+                        onClick = { onViewECertClick(contribution) },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = "View e-cert",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ECertificateDialog(
+    memberName: String,
+    contribution: MemberContributionUi,
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = 28.dp,
+                    vertical = 32.dp
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "CERTIFICATE OF CONTRIBUTION",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.5.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = contribution.projectTitle,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "This certificate is proudly presented to",
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = memberName,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "Thank you $memberName for contributing ${contribution.amountText}",
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Your support helps make this project possible.",
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                TextButton(
+                    onClick = onDismiss
+                ) {
                     Text(
-                        text = "View e-cert",
+                        text = "Close",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.primary
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }

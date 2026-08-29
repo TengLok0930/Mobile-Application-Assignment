@@ -1,6 +1,5 @@
 package com.example.fundforgoals.supabase.model
 
-import android.text.BoringLayout
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

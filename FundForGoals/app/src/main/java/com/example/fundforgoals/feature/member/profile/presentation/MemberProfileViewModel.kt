@@ -3,19 +3,25 @@ package com.example.fundforgoals.feature.member.profile.presentation
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fundforgoals.supabase.repository.MemberContributionData
-import com.example.fundforgoals.supabase.repository.MemberContributionRepository
+import com.example.fundforgoals.supabase.model.Contributor
+import com.example.fundforgoals.supabase.model.Project
+import com.example.fundforgoals.supabase.model.User
+import com.example.fundforgoals.supabase.repository.ContributorRepository
+import com.example.fundforgoals.supabase.repository.ProjectRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 data class MemberContributionUi(
     val id: String,
+    val projectId: Int,
     val projectTitle: String,
     val organisationName: String,
+    val amount: Double,
     val amountText: String = "",
     val isOngoing: Boolean = false,
     val hasECertificate: Boolean = false
@@ -38,7 +44,8 @@ class MemberProfileViewModel(
 ) : ViewModel() {
 
     private val userRepository = UserRepository()
-    private val memberContributionRepository = MemberContributionRepository()
+    private val contributorRepository = ContributorRepository()
+    private val projectRepository = ProjectRepository()
 
     private val currentUser: String =
         checkNotNull(savedStateHandle["currentUser"])
@@ -54,21 +61,36 @@ class MemberProfileViewModel(
 
     private fun loadProfile() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = null
+                )
+            }
 
-            runCatching {
-                userRepository.getUserByUsername(currentUser)
-                    ?: error("User not found")
-            }.onSuccess { user ->
+            try {
+                val user = userRepository.getUserByUsername(currentUser)
+                    ?: throw IllegalStateException("User not found.")
+
+                val userId = user.id
+                    ?: throw IllegalStateException("User ID not found.")
+
+                val contributors = contributorRepository.getContributorsByUserId(userId)
+                val contributionItems = buildContributionUi(contributors)
+
+                val (ongoing, past) = contributionItems.partition { it.isOngoing }
+
                 _uiState.update {
                     it.copy(
                         memberName = user.name,
                         memberAvatar = user.avatarUrl,
-                        isLoading = false
+                        ongoingContributions = ongoing,
+                        pastContributions = past,
+                        isLoading = false,
+                        errorMessage = null
                     )
                 }
-                loadContributions(userId = user.id ?: return@onSuccess)
-            }.onFailure { exception ->
+            } catch (exception: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -79,35 +101,39 @@ class MemberProfileViewModel(
         }
     }
 
-    private fun loadContributions(userId: Int) {
-        viewModelScope.launch {
-            runCatching {
-                memberContributionRepository.getContributionsForUser(userId)
-            }.onSuccess { contributions ->
-                val (ongoing, past) = contributions.partition { it.isOngoing }
-                _uiState.update {
-                    it.copy(
-                        ongoingContributions = ongoing.toUi(),
-                        pastContributions = past.toUi()
-                    )
-                }
-            }.onFailure { exception ->
-                _uiState.update {
-                    it.copy(errorMessage = exception.message ?: "Failed to load contributions")
-                }
-            }
-        }
-    }
+    private suspend fun buildContributionUi(
+        contributors: List<Contributor>
+    ): List<MemberContributionUi> {
+        if (contributors.isEmpty()) return emptyList()
 
-    private fun List<MemberContributionData>.toUi(): List<MemberContributionUi> = map { data ->
-        MemberContributionUi(
-            id = data.contributorId.toString(),
-            projectTitle = data.projectTitle,
-            organisationName = data.organisationName,
-            amountText = "RM %.2f".format(data.fundAmount),
-            isOngoing = data.isOngoing,
-            hasECertificate = data.hasECertificate
-        )
+        val projectIds = contributors.map { it.project }.distinct()
+        val projects = projectRepository.getProjectsByIds(projectIds)
+        val projectMap: Map<Int, Project> = projects.mapNotNull { project ->
+            project.id?.let { it to project }
+        }.toMap()
+
+        val creatorIds = projects.map { it.createdBy }.distinct()
+        val creators = userRepository.getUsersByIds(creatorIds)
+        val creatorMap: Map<Int, User> = creators.mapNotNull { creator ->
+            creator.id?.let { it to creator }
+        }.toMap()
+
+        return contributors.mapNotNull { contributor ->
+            val project = projectMap[contributor.project] ?: return@mapNotNull null
+            val organisationName = creatorMap[project.createdBy]?.name ?: "Unknown organisation"
+            val projectStatus = project.status.orEmpty()
+
+            MemberContributionUi(
+                id = (contributor.id ?: 0).toString(),
+                projectId = contributor.project,
+                projectTitle = project.title,
+                organisationName = organisationName,
+                amount = contributor.fundAmount,
+                amountText = "RM %,.2f".format(Locale.US, contributor.fundAmount),
+                isOngoing = projectStatus == "Ongoing",
+                hasECertificate = project.hasCert && projectStatus != "Ongoing"
+            )
+        }
     }
 
     fun setDarkMode(isDarkTheme: Boolean) {
