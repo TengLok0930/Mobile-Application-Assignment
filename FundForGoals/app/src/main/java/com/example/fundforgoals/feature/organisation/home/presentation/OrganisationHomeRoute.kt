@@ -23,14 +23,7 @@ fun OrganisationHomeRoute(
         isCompact = isCompact,
         onAction = { action ->
             when (action) {
-                is OrganisationHomeAction.OnProjectClick -> {
-                    if (isCompact) {
-                        onProjectSelected(action.projectId)
-                    } else {
-                        viewModel.onAction(action)
-                    }
-                }
-
+                is OrganisationHomeAction.OnProjectClick -> viewModel.onAction(action)
                 OrganisationHomeAction.OnViewProjectClick -> onViewProjectClick()
                 OrganisationHomeAction.OnNewProjectClick -> viewModel.onAction(action)
                 OrganisationHomeAction.OnMessagesClick -> onMessagesClick(uiState.currentUser)

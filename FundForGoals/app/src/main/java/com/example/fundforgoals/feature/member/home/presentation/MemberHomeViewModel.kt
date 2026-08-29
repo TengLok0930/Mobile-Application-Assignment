@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fundforgoals.supabase.model.Project
+import com.example.fundforgoals.supabase.repository.ContributorRepository
 import com.example.fundforgoals.supabase.repository.ProjectRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +19,7 @@ data class MemberHomeUiState(
     val selectedFilter: String = "Newest",
     val projects: List<Project> = emptyList(),
     val creatorNames: Map<Int, String> = emptyMap(),
+    val projectFunds: Map<Int, Double> = emptyMap(),
     val selectedProjectId: Int? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
@@ -35,18 +37,16 @@ class MemberHomeViewModel(
 
     private val projectRepository = ProjectRepository()
     private val userRepository = UserRepository()
+    private val contributorRepository = ContributorRepository()
 
     private var allProjects: List<Project> = emptyList()
     private var creatorNames: Map<Int, String> = emptyMap()
+    private var projectFunds: Map<Int, Double> = emptyMap()
 
     private val _uiState = MutableStateFlow(
-        MemberHomeUiState(
-            currentUser = currentUser
-        )
+        MemberHomeUiState(currentUser = currentUser)
     )
-
-    val uiState: StateFlow<MemberHomeUiState> =
-        _uiState.asStateFlow()
+    val uiState: StateFlow<MemberHomeUiState> = _uiState.asStateFlow()
 
     init {
         loadProjects()
@@ -54,34 +54,26 @@ class MemberHomeViewModel(
 
     private fun loadProjects() {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isLoading = true,
-                    errorMessage = null
-                )
-            }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
                 allProjects = projectRepository.getOngoingProjects()
 
-                val creatorIds = allProjects
-                    .map { it.createdBy }
-                    .distinct()
-
+                val creatorIds = allProjects.map { it.createdBy }.distinct()
                 creatorNames = creatorIds
                     .mapNotNull { creatorId ->
-                        val user = userRepository.getUserById(creatorId)
-
-                        user?.name?.let { creatorName ->
-                            creatorId to creatorName
-                        }
+                        userRepository.getUserById(creatorId)?.name?.let { creatorId to it }
                     }
                     .toMap()
+
+                val projectIds = allProjects.mapNotNull { it.id }
+                projectFunds = contributorRepository.getTotalFundsByProjectIds(projectIds)
 
                 _uiState.update {
                     it.copy(
                         projects = allProjects,
                         creatorNames = creatorNames,
+                        projectFunds = projectFunds,
                         selectedProjectId = allProjects.firstOrNull()?.id,
                         isLoading = false
                     )
@@ -90,8 +82,7 @@ class MemberHomeViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = exception.message
-                            ?: "Failed to load projects"
+                        errorMessage = exception.message ?: "Failed to load projects"
                     )
                 }
             }

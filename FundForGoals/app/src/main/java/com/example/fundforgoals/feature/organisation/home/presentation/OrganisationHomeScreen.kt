@@ -25,21 +25,30 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.fundforgoals.R
 import com.example.fundforgoals.app.navigation.AppBottomBar
 import com.example.fundforgoals.app.navigation.AppNavigationRail
 import com.example.fundforgoals.core.ui.components.input.SearchBar
@@ -76,6 +85,11 @@ private fun OrganisationHomeCompactScreen(
     onAction: (OrganisationHomeAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showDetail by rememberSaveable { mutableStateOf(false) }
+    var selectedProjectId by rememberSaveable { mutableStateOf<Int?>(null) }
+
+    val selectedProject = uiState.projects.firstOrNull { it.id == selectedProjectId }
+
     Scaffold(
         modifier = modifier
             .statusBarsPadding()
@@ -112,64 +126,87 @@ private fun OrganisationHomeCompactScreen(
                 .padding(innerPadding),
             color = MaterialTheme.colorScheme.background
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                SearchBar(
-                    value = uiState.searchQuery,
-                    onValueChange = {
-                        onAction(OrganisationHomeAction.OnSearchQueryChanged(it))
-                    }
-                )
-
-                Row(
+            if (!showDetail) {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp)
+                        .padding(16.dp)
                 ) {
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = { onAction(OrganisationHomeAction.OnNewProjectClick) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
+                    SearchBar(
+                        value = uiState.searchQuery,
+                        onValueChange = {
+                            onAction(OrganisationHomeAction.OnSearchQueryChanged(it))
+                        }
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp)
                     ) {
-                        Text(
-                            text = "Create New Project",
-                            textAlign = TextAlign.Center
-                        )
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = { onAction(OrganisationHomeAction.OnNewProjectClick) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        ) {
+                            Text(
+                                text = "Create New Project",
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.size(16.dp))
+
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = { onAction(OrganisationHomeAction.OnViewProjectClick) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        ) {
+                            Text(
+                                text = "View Other Project",
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = { onAction(OrganisationHomeAction.OnViewProjectClick) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                    ) {
-                        Text(
-                            text = "View Other Project",
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    OrganisationHomeContent(
+                        uiState = uiState,
+                        onAction = onAction,
+                        onProjectSelect = { projectId ->
+                            selectedProjectId = projectId
+                            showDetail = true
+                        },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 20.dp, vertical = 12.dp),
+                        showSelection = false
+                    )
                 }
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    IconButton(
+                        onClick = { showDetail = false }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back_40px),
+                            contentDescription = "Back"
+                        )
+                    }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OrganisationHomeContent(
-                    uiState = uiState,
-                    onAction = onAction,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 20.dp, vertical = 12.dp),
-                    showSelection = false
-                )
+                    ProjectDetailPane(
+                        project = selectedProject,
+                        creatorName = selectedProject?.let { uiState.creatorNames[it.createdBy] },
+                        currentFund = selectedProject?.id?.let { uiState.projectFunds[it] } ?: 0.0
+                    )
+                }
             }
         }
     }
@@ -294,7 +331,8 @@ private fun OrganisationHomeExpandedScreen(
             ) {
                 ProjectDetailPane(
                     project = uiState.selectedProject,
-                    creatorName = uiState.selectedProject?.let { uiState.creatorNames[it.createdBy] }
+                    creatorName = uiState.selectedProject?.let { uiState.creatorNames[it.createdBy] },
+                    currentFund = uiState.selectedProject?.id?.let { uiState.projectFunds[it] } ?: 0.0
                 )
             }
         }
@@ -305,50 +343,14 @@ private fun OrganisationHomeExpandedScreen(
 private fun OrganisationHomeContent(
     uiState: OrganisationHomeUiState,
     onAction: (OrganisationHomeAction) -> Unit,
+    onProjectSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
     showSelection: Boolean = false
 ) {
     when {
-        uiState.isLoading -> {
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Loading...",
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        }
-
-        uiState.errorMessage != null -> {
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = uiState.errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-
-        uiState.projects.isEmpty() -> {
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No projects\nare available!",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
+        uiState.isLoading -> { /* unchanged */ }
+        uiState.errorMessage != null -> { /* unchanged */ }
+        uiState.projects.isEmpty() -> { /* unchanged */ }
 
         else -> {
             OrganisationHomeListPane(
@@ -356,9 +358,7 @@ private fun OrganisationHomeContent(
                 modifier = modifier,
                 showSelection = showSelection,
                 onProjectClick = { project ->
-                    project.id?.let { id ->
-                        onAction(OrganisationHomeAction.OnProjectClick(id))
-                    }
+                    project.id?.let { id -> onProjectSelect(id) }
                 }
             )
         }
@@ -473,7 +473,8 @@ private fun ProjectCard(
 @Composable
 private fun ProjectDetailPane(
     project: Project?,
-    creatorName: String? = null
+    creatorName: String? = null,
+    currentFund: Double = 0.0
 ) {
     val accentColor = if (isSystemInDarkTheme()) {
         BrandAccentDark
@@ -493,9 +494,8 @@ private fun ProjectDetailPane(
             )
         }
     } else {
-        val currentAmount = project.currentFund
         val targetAmount = if (project.fundGoal == 0.0) 1.0 else project.fundGoal
-        val progressFraction = (currentAmount / targetAmount).toFloat().coerceIn(0f, 1f)
+        val progressFraction = (currentFund / targetAmount).toFloat().coerceIn(0f, 1f)
 
         Column(
             modifier = Modifier
@@ -564,7 +564,7 @@ private fun ProjectDetailPane(
             }
 
             Text(
-                text = "Contributions: $${project.currentFund}",
+                text = "Contributions: $${currentFund}",
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold

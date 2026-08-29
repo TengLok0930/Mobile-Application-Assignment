@@ -18,6 +18,7 @@ data class ViewProjectUiState(
     val selectedFilter: String = "Newest",
     val projects: List<Project> = emptyList(),
     val creatorNames: Map<Int, String> = emptyMap(),
+    val projectFunds: Map<Int, Double> = emptyMap(),
     val selectedProjectId: Int? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null

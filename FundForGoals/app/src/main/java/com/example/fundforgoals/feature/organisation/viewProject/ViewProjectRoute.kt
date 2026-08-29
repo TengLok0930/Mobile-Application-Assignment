@@ -23,14 +23,7 @@ fun ViewProjectRoute(
         isCompact = isCompact,
         onAction = { action ->
             when (action) {
-                is ViewProjectAction.OnProjectClick -> {
-                    if (isCompact) {
-                        onProjectSelected(action.projectId)
-                    } else {
-                        viewModel.onAction(action)
-                    }
-                }
-
+                is ViewProjectAction.OnProjectClick -> viewModel.onAction(action)
                 ViewProjectAction.OnMessagesClick -> onMessagesClick(uiState.currentUser)
                 ViewProjectAction.OnProfileClick -> onProfileClick()
                 ViewProjectAction.OnHomeClick -> onHomeClick()

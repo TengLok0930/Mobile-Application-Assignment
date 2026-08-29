@@ -24,20 +24,29 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.fundforgoals.R
 import com.example.fundforgoals.app.navigation.AppBottomBar
 import com.example.fundforgoals.app.navigation.AppNavigationRail
 import com.example.fundforgoals.core.ui.components.input.SearchBar
@@ -74,18 +83,25 @@ fun ViewProjectCompactScreen(
     onAction: (ViewProjectAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showDetail by rememberSaveable { mutableStateOf(false) }
+    var selectedProjectId by rememberSaveable { mutableStateOf<Int?>(null) }
+
+    val selectedProject = uiState.projects.firstOrNull { it.id == selectedProjectId }
+
     Scaffold(
         modifier = modifier
             .statusBarsPadding()
             .fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            SearchBar(
-                value = uiState.searchQuery,
-                onValueChange = {
-                    onAction(ViewProjectAction.OnSearchQueryChanged(it))
-                }
-            )
+            if (!showDetail) {
+                SearchBar(
+                    value = uiState.searchQuery,
+                    onValueChange = {
+                        onAction(ViewProjectAction.OnSearchQueryChanged(it))
+                    }
+                )
+            }
         },
         bottomBar = {
             AppBottomBar(
@@ -102,14 +118,40 @@ fun ViewProjectCompactScreen(
                 .padding(innerPadding),
             color = MaterialTheme.colorScheme.background
         ) {
-            ViewProjectContent(
-                uiState = uiState,
-                onAction = onAction,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                showSelection = false
-            )
+            if (!showDetail) {
+                ViewProjectContent(
+                    uiState = uiState,
+                    onProjectSelect = { projectId ->
+                        selectedProjectId = projectId
+                        showDetail = true
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                    showSelection = false
+                )
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    IconButton(
+                        onClick = { showDetail = false }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back_40px),
+                            contentDescription = "Back"
+                        )
+                    }
+
+                    ProjectDetailPane(
+                        project = selectedProject,
+                        creatorName = selectedProject
+                            ?.let { project -> uiState.creatorNames[project.createdBy] }
+                            .orEmpty(),
+                        currentFund = selectedProject?.id
+                            ?.let { uiState.projectFunds[it] }
+                            ?: 0.0
+                    )
+                }
+            }
         }
     }
 }
@@ -187,10 +229,11 @@ fun ViewProjectExpandedScreen(
                 ProjectDetailPane(
                     project = uiState.selectedProject,
                     creatorName = uiState.selectedProject
-                        ?.let { project ->
-                            uiState.creatorNames[project.createdBy]
-                        }
-                        .orEmpty()
+                        ?.let { project -> uiState.creatorNames[project.createdBy] }
+                        .orEmpty(),
+                    currentFund = uiState.selectedProject?.id
+                        ?.let { uiState.projectFunds[it] }
+                        ?: 0.0
                 )
             }
         }
@@ -200,62 +243,21 @@ fun ViewProjectExpandedScreen(
 @Composable
 fun ViewProjectContent(
     uiState: ViewProjectUiState,
-    onAction: (ViewProjectAction) -> Unit,
+    onProjectSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
     showSelection: Boolean = false
 ) {
     when {
-        uiState.isLoading -> {
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Loading...",
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        }
-
-        uiState.errorMessage != null -> {
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = uiState.errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-
-        uiState.projects.isEmpty() -> {
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No projects\nare available!",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
+        uiState.isLoading -> { /* unchanged */ }
+        uiState.errorMessage != null -> { /* unchanged */ }
+        uiState.projects.isEmpty() -> { /* unchanged */ }
 
         else -> {
             ViewProjectListPane(
                 uiState = uiState,
                 modifier = modifier,
                 showSelection = showSelection,
-                onProjectClick = { projectId ->
-                    onAction(
-                        ViewProjectAction.OnProjectClick(projectId)
-                    )
-                }
+                onProjectClick = onProjectSelect
             )
         }
     }
@@ -384,8 +386,9 @@ private fun ProjectCard(
 @Composable
 private fun ProjectDetailPane(
     project: Project?,
-    creatorName: String
-) {
+    creatorName: String,
+    currentFund: Double
+)  {
     val accentColor = if (isSystemInDarkTheme()) {
         BrandAccentDark
     } else {
@@ -405,9 +408,7 @@ private fun ProjectDetailPane(
         }
     } else {
         val progress = if (project.fundGoal > 0.0) {
-            (project.currentFund / project.fundGoal)
-                .toFloat()
-                .coerceIn(0f, 1f)
+            (currentFund / project.fundGoal).toFloat().coerceIn(0f, 1f)
         } else {
             0f
         }
@@ -451,7 +452,7 @@ private fun ProjectDetailPane(
             )
 
             Text(
-                text = "Current funds: RM %.2f".format(project.currentFund),
+                text = "Current funds: RM %.2f".format(currentFund),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold

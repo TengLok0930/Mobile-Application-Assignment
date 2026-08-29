@@ -107,4 +107,16 @@ class UserRepository {
             }
             .decodeSingle<User>()
     }
+
+    suspend fun getUsersByIds(ids: List<Int>): List<User> {
+        if (ids.isEmpty()) return emptyList()
+        return supabase
+            .from("user")
+            .select {
+                filter {
+                    isIn("id", ids)
+                }
+            }
+            .decodeList<User>()
+    }
 }
