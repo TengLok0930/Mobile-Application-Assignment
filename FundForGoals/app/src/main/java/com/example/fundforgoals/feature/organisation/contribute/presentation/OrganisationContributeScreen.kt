@@ -1,10 +1,11 @@
-package com.example.fundforgoals.feature.member.contribute.presentation
+package com.example.fundforgoals.feature.organisation.contribute.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,9 +44,9 @@ import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 
 @Composable
-fun MemberContributeScreen(
-    uiState: MemberContributeUiState,
-    onAction: (MemberContributeAction) -> Unit,
+fun OrganisationContributeScreen(
+    uiState: OrganisationContributeUiState,
+    onAction: (OrganisationContributeAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
@@ -83,7 +84,7 @@ fun MemberContributeScreen(
                 horizontalArrangement = Arrangement.Start
             ) {
                 BackButton(
-                    onClick = { onAction(MemberContributeAction.OnBackClick) }
+                    onClick = { onAction(OrganisationContributeAction.OnBackClick) }
                 )
             }
 
@@ -198,7 +199,7 @@ fun MemberContributeScreen(
                         placeholder = "0.00",
                         placeholderColor = placeholderColor,
                         colors = textFieldColors,
-                        onValueChange = { onAction(MemberContributeAction.OnFundAmountChanged(it)) }
+                        onValueChange = { onAction(OrganisationContributeAction.OnFundAmountChanged(it)) }
                     )
 
                     uiState.errorMessage?.let { error ->
@@ -225,7 +226,7 @@ fun MemberContributeScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { onAction(MemberContributeAction.OnSubmitClick) },
+                        onClick = { onAction(OrganisationContributeAction.OnSubmitClick) },
                         enabled = !uiState.isSubmitting && uiState.fundAmountInput.isNotBlank(),
                         modifier = Modifier.fillMaxWidth()
                     ) {

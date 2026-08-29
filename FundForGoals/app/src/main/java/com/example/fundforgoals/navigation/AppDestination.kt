@@ -13,6 +13,11 @@ sealed class AppDestination(val route: String) {
     data object MemberHome : AppDestination("member_home/{currentUser}") {
         fun createRoute(currentUser: String) = "member_home/$currentUser"
     }
+
+    data object MemberContribute : AppDestination("member_contribute/{currentUser}/{projectId}") {
+        fun createRoute(currentUser: String, projectId: Int) = "member_contribute/$currentUser/$projectId"
+    }
+
     data object MemberProfile : AppDestination("member_profile/{currentUser}") {
         fun createRoute(currentUser: String) = "member_profile/$currentUser"
     }
@@ -26,6 +31,9 @@ sealed class AppDestination(val route: String) {
 
     data object OrganisationViewProject : AppDestination("organisation_view_project/{currentUser}") {
         fun createRoute(currentUser: String) = "organisation_view_project/$currentUser"
+    }
+    data object OrganisationContribute : AppDestination("organisation_contribute/{currentUser}/{projectId}") {
+        fun createRoute(currentUser: String, projectId: Int) = "organisation_contribute/$currentUser/$projectId"
     }
     object OrganisationPastProjects : AppDestination("organisation_past_projects")
     data object AdminHome : AppDestination("admin_home")

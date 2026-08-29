@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -59,6 +60,7 @@ import kotlin.text.orEmpty
 fun ViewProjectScreen(
     uiState: ViewProjectUiState,
     onAction: (ViewProjectAction) -> Unit,
+    onContributeClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     isCompact: Boolean = true
 ) {
@@ -66,12 +68,14 @@ fun ViewProjectScreen(
         ViewProjectCompactScreen(
             uiState = uiState,
             onAction = onAction,
+            onContributeClick = onContributeClick,
             modifier = modifier
         )
     } else {
         ViewProjectExpandedScreen(
             uiState = uiState,
             onAction = onAction,
+            onContributeClick = onContributeClick,
             modifier = modifier
         )
     }
@@ -81,6 +85,7 @@ fun ViewProjectScreen(
 fun ViewProjectCompactScreen(
     uiState: ViewProjectUiState,
     onAction: (ViewProjectAction) -> Unit,
+    onContributeClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
@@ -148,7 +153,8 @@ fun ViewProjectCompactScreen(
                             .orEmpty(),
                         currentFund = selectedProject?.id
                             ?.let { uiState.projectFunds[it] }
-                            ?: 0.0
+                            ?: 0.0,
+                        onContributeClick = onContributeClick
                     )
                 }
             }
@@ -160,6 +166,7 @@ fun ViewProjectCompactScreen(
 fun ViewProjectExpandedScreen(
     uiState: ViewProjectUiState,
     onAction: (ViewProjectAction) -> Unit,
+    onContributeClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -233,7 +240,8 @@ fun ViewProjectExpandedScreen(
                         .orEmpty(),
                     currentFund = uiState.selectedProject?.id
                         ?.let { uiState.projectFunds[it] }
-                        ?: 0.0
+                        ?: 0.0,
+                    onContributeClick = onContributeClick
                 )
             }
         }
@@ -387,13 +395,10 @@ private fun ProjectCard(
 private fun ProjectDetailPane(
     project: Project?,
     creatorName: String,
-    currentFund: Double
-)  {
-    val accentColor = if (isSystemInDarkTheme()) {
-        BrandAccentDark
-    } else {
-        BrandAccentLight
-    }
+    currentFund: Double,
+    onContributeClick: (Int) -> Unit
+) {
+    val accentColor = if (isSystemInDarkTheme()) BrandAccentDark else BrandAccentLight
 
     if (project == null) {
         Box(
@@ -473,8 +478,8 @@ private fun ProjectDetailPane(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            androidx.compose.material3.Button(
-                onClick = {},
+            Button(
+                onClick = { project.id?.let(onContributeClick) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Contribute")

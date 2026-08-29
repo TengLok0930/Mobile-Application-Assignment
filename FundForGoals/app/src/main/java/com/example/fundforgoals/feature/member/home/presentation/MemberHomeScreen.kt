@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -57,21 +58,14 @@ import com.example.fundforgoals.supabase.model.Project
 fun MemberHomeScreen(
     uiState: MemberHomeUiState,
     onAction: (MemberHomeAction) -> Unit,
+    onContributeClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     isCompact: Boolean = true
 ) {
     if (isCompact) {
-        MemberHomeCompactScreen(
-            uiState = uiState,
-            onAction = onAction,
-            modifier = modifier
-        )
+        MemberHomeCompactScreen(uiState, onAction, onContributeClick, modifier)
     } else {
-        MemberHomeExpandedScreen(
-            uiState = uiState,
-            onAction = onAction,
-            modifier = modifier
-        )
+        MemberHomeExpandedScreen(uiState, onAction, onContributeClick, modifier)
     }
 }
 
@@ -79,6 +73,7 @@ fun MemberHomeScreen(
 private fun MemberHomeCompactScreen(
     uiState: MemberHomeUiState,
     onAction: (MemberHomeAction) -> Unit,
+    onContributeClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
@@ -148,7 +143,8 @@ private fun MemberHomeCompactScreen(
                             .orEmpty(),
                         currentFund = selectedProject?.id
                             ?.let { uiState.projectFunds[it] }
-                            ?: 0.0
+                            ?: 0.0,
+                        onContributeClick = onContributeClick
                     )
                 }
             }
@@ -160,6 +156,7 @@ private fun MemberHomeCompactScreen(
 private fun MemberHomeExpandedScreen(
     uiState: MemberHomeUiState,
     onAction: (MemberHomeAction) -> Unit,
+    onContributeClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -234,7 +231,8 @@ private fun MemberHomeExpandedScreen(
                         .orEmpty(),
                     currentFund = uiState.selectedProject?.id
                         ?.let { uiState.projectFunds[it] }
-                        ?: 0.0
+                        ?: 0.0,
+                    onContributeClick = onContributeClick
                 )
             }
         }
@@ -426,7 +424,8 @@ private fun ProjectCard(
 private fun ProjectDetailPane(
     project: Project?,
     creatorName: String,
-    currentFund: Double
+    currentFund: Double,
+    onContributeClick: (Int) -> Unit
 ) {
     val accentColor = if (isSystemInDarkTheme()) BrandAccentDark else BrandAccentLight
 
@@ -508,8 +507,8 @@ private fun ProjectDetailPane(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            androidx.compose.material3.Button(
-                onClick = {},
+            Button(
+                onClick = { project.id?.let(onContributeClick) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Contribute")
