@@ -3,6 +3,7 @@ package com.example.fundforgoals.feature.admin.home.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fundforgoals.supabase.repository.ProjectRepository
+import com.example.fundforgoals.supabase.repository.ProjectRequestRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
 import com.example.fundforgoals.supabase.repository.WarningRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,7 @@ data class AdminProjectUi(
     val title: String,
     val organisation: String,
     val overview: String,
+    val aiOverview: String,
     val warningCount: Int,
     val warningDetails: String,
     val avatarUrl: String
@@ -38,6 +40,7 @@ class AdminHomeViewModel : ViewModel() {
     private val projectRepository = ProjectRepository()
     private val userRepository = UserRepository()
     private val warningRepository = WarningRepository()
+    private val projectRequestRepository = ProjectRequestRepository()
 
     private var allProjectUis: List<AdminProjectUi> = emptyList()
 
@@ -70,12 +73,14 @@ class AdminHomeViewModel : ViewModel() {
                 allProjectUis = projects.mapNotNull { project ->
                     project.id?.let { id ->
                         val projectWarnings = warningsByProject[id].orEmpty()
+                        val projectRequest = projectRequestRepository.getProjectRequestByProjectId(id)
                         AdminProjectUi(
                             id = id,
                             title = project.title,
                             organisation = creatorNames[project.createdBy].orEmpty(),
                             overview = project.desc,
                             warningCount = projectWarnings.size,
+                            aiOverview = projectRequest?.aiOverview?.takeIf { it.isNotBlank() } ?: "No AI overview available",
                             warningDetails = projectWarnings.maxByOrNull { it.createdAt }?.details
                                 ?: "No warning details are currently available for this project.",
                             avatarUrl = project.avatarUrl

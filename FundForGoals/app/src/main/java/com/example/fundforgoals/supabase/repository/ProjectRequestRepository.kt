@@ -35,6 +35,18 @@ class ProjectRequestRepository {
             .decodeList<ProjectRequest>()
     }
 
+    suspend fun getProjectRequestByProjectId(projectId: Int): ProjectRequest? {
+        return supabase
+            .from("project_request")
+            .select {
+                filter {
+                    eq("project_id", projectId)
+                }
+            }
+            .decodeList<ProjectRequest>()
+            .firstOrNull()
+    }
+
     suspend fun addProjectRequest(projectRequest: ProjectRequest) {
         val request = CreateProjectRequestRequest(
             details = projectRequest.details,

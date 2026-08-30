@@ -20,7 +20,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -207,6 +209,7 @@ private fun OrganisationHomeCompactScreen(
                         creatorName = selectedProject?.let { uiState.creatorNames[it.createdBy] },
                         currentFund = selectedProject?.id?.let { uiState.projectFunds[it] } ?: 0.0,
                         warningCount = selectedProject?.id?.let { uiState.projectWarningCounts[it] } ?: 0,
+                        aiOverview = uiState.selectedProject?.id?.let { uiState.projectAiOverviews[it] } ?: "No AI overview available.",
                         onViewWarningsClick = { projectId ->
                             onAction(OrganisationHomeAction.OnViewWarningsClick(projectId))
                         }
@@ -339,6 +342,7 @@ private fun OrganisationHomeExpandedScreen(
                     creatorName = uiState.selectedProject?.let { uiState.creatorNames[it.createdBy] },
                     currentFund = uiState.selectedProject?.id?.let { uiState.projectFunds[it] } ?: 0.0,
                     warningCount = uiState.selectedProject?.id?.let { uiState.projectWarningCounts[it] } ?: 0,
+                    aiOverview = uiState.selectedProject?.id?.let { uiState.projectAiOverviews[it] } ?: "No AI overview available.",
                     onViewWarningsClick = { projectId ->
                         onAction(OrganisationHomeAction.OnViewWarningsClick(projectId))
                     }
@@ -485,6 +489,7 @@ private fun ProjectDetailPane(
     creatorName: String? = null,
     currentFund: Double = 0.0,
     warningCount: Int = 0,
+    aiOverview: String = "No AI overview available.",
     onViewWarningsClick: (Int) -> Unit = {}
 ) {
     val accentColor = if (isSystemInDarkTheme()) {
@@ -495,7 +500,8 @@ private fun ProjectDetailPane(
 
     if (project == null) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -511,7 +517,8 @@ private fun ProjectDetailPane(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp),
+                .padding(20.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -608,6 +615,21 @@ private fun ProjectDetailPane(
                     fontSize = 16.sp
                 )
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "AI Overview",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = aiOverview,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp
+            )
 
             Spacer(modifier = Modifier.weight(1f))
 

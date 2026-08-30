@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -144,6 +146,9 @@ private fun MemberHomeCompactScreen(
                         currentFund = selectedProject?.id
                             ?.let { uiState.projectFunds[it] }
                             ?: 0.0,
+                        aiOverview = uiState.selectedProject?.id
+                            ?.let { uiState.projectAiOverviews[it] }
+                            ?: "No AI overview available.",
                         onContributeClick = onContributeClick
                     )
                 }
@@ -232,6 +237,9 @@ private fun MemberHomeExpandedScreen(
                     currentFund = uiState.selectedProject?.id
                         ?.let { uiState.projectFunds[it] }
                         ?: 0.0,
+                    aiOverview = uiState.selectedProject?.id
+                        ?.let { uiState.projectAiOverviews[it] }
+                        ?: "No AI overview available.",
                     onContributeClick = onContributeClick
                 )
             }
@@ -425,6 +433,7 @@ private fun ProjectDetailPane(
     project: Project?,
     creatorName: String,
     currentFund: Double,
+    aiOverview: String,
     onContributeClick: (Int) -> Unit
 ) {
     val accentColor = if (isSystemInDarkTheme()) BrandAccentDark else BrandAccentLight
@@ -450,7 +459,8 @@ private fun ProjectDetailPane(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp),
+                .padding(20.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
@@ -501,6 +511,20 @@ private fun ProjectDetailPane(
 
             Text(
                 text = project.desc,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "AI Overview",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium
+            )
+
+            Text(
+                text = aiOverview,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 16.sp
             )
