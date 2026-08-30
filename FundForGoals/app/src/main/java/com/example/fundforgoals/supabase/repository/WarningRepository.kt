@@ -23,7 +23,7 @@ class WarningRepository {
 
         supabase
             .from("warning")
-            .insert(request) // was inserting `warning` before — fixed
+            .insert(request)
     }
 
     suspend fun modifyWarning(warning: Warning) {
@@ -58,7 +58,7 @@ class WarningRepository {
             .from("warning")
             .select {
                 filter {
-                    isIn("project_id", projectIds) // was "projectId"
+                    isIn("project_id", projectIds)
                 }
             }
             .decodeList<Warning>()

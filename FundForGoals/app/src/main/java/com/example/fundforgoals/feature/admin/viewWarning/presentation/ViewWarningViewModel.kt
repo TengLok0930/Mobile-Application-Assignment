@@ -15,10 +15,13 @@ import kotlinx.coroutines.launch
 
 data class ViewWarningItemUi(
     val id: Int,
-    val title: String,
+    val warningNumber: Int,
     val details: String,
     val createdAt: String
-)
+) {
+    val title: String
+        get() = "Warning #$warningNumber"
+}
 
 data class ViewWarningUiState(
     val projectId: Int,
@@ -73,10 +76,10 @@ class ViewWarningViewModel(
                 _uiState.update {
                     it.copy(
                         projectTitle = project.title,
-                        warnings = warnings.map { warning ->
+                        warnings = warnings.mapIndexed { index, warning ->
                             ViewWarningItemUi(
                                 id = warning.id ?: 0,
-                                title = "Warning #${warning.id ?: 0}",
+                                warningNumber = index + 1,
                                 details = warning.details,
                                 createdAt = warning.createdAt
                             )

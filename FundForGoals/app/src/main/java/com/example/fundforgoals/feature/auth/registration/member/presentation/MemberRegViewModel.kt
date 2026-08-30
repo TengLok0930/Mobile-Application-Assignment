@@ -149,7 +149,7 @@ class MemberRegViewModel : ViewModel() {
                         name = username,
                         password = currentState.password,
                         socialLink = socialUrl,
-                        avatarUrl = "",
+                        avatarUrl = "https://gravatar.com/avatar/42598cdc099613e80dd6fe274a86c9ba?s=400&d=mp&r=x",
                         userType = "MEMBER",
                         isApproved = false
                     )
