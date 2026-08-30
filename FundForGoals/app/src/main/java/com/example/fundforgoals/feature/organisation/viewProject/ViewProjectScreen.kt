@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -146,7 +148,7 @@ fun ViewProjectCompactScreen(
                 ViewProjectContent(
                     uiState = uiState,
                     onProjectSelect = { projectId ->
-                        selectedProjectId = projectId
+                        onAction(ViewProjectAction.OnProjectClick(projectId))
                         showDetail = true
                     },
                     modifier = Modifier
@@ -155,7 +157,10 @@ fun ViewProjectCompactScreen(
                     showSelection = false
                 )
             } else {
-                Column(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                ) {
                     IconButton(
                         onClick = { showDetail = false }
                     ) {
@@ -166,13 +171,16 @@ fun ViewProjectCompactScreen(
                     }
 
                     ProjectDetailPane(
-                        project = selectedProject,
-                        creatorName = selectedProject
+                        project = uiState.selectedProject,
+                        creatorName = uiState.selectedProject
                             ?.let { project -> uiState.creatorNames[project.createdBy] }
                             .orEmpty(),
-                        currentFund = selectedProject?.id
+                        currentFund = uiState.selectedProject?.id
                             ?.let { uiState.projectFunds[it] }
                             ?: 0.0,
+                        aiOverview = uiState.selectedProject?.id
+                            ?.let { uiState.projectAiOverviews[it] }
+                            ?: "No AI overview available.",
                         onContributeClick = onContributeClick
                     )
                 }
@@ -258,7 +266,8 @@ fun ViewProjectExpandedScreen(
             Card(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(),
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
@@ -272,6 +281,9 @@ fun ViewProjectExpandedScreen(
                     currentFund = uiState.selectedProject?.id
                         ?.let { uiState.projectFunds[it] }
                         ?: 0.0,
+                    aiOverview = uiState.selectedProject?.id
+                        ?.let { uiState.projectAiOverviews[it] }
+                        ?: "No AI overview available.",
                     onContributeClick = onContributeClick
                 )
             }
@@ -427,6 +439,7 @@ private fun ProjectDetailPane(
     project: Project?,
     creatorName: String,
     currentFund: Double,
+    aiOverview: String,
     onContributeClick: (Int) -> Unit
 ) {
     val accentColor = if (isSystemInDarkTheme()) BrandAccentDark else BrandAccentLight
@@ -503,6 +516,21 @@ private fun ProjectDetailPane(
 
             Text(
                 text = project.desc,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "AI Overview",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = aiOverview,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 16.sp
             )

@@ -102,6 +102,7 @@ class OrganisationHomeViewModel(
                         creatorNames = creatorNames,
                         projectFunds = projectFunds,
                         projectWarningCounts = projectWarningCounts,
+                        projectAiOverviews = projectAiOverviews,
                         selectedProjectId = allProjects.firstOrNull()?.id,
                         isLoading = false,
                         errorMessage = null

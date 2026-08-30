@@ -131,6 +131,7 @@ private fun AdminHomeCompactScreen(
                         if (action is AdminHomeAction.OnMonitorClick) {
                             selectedProjectId = action.projectId
                             showDetail = true
+                            onAction(action)
                         } else {
                             onAction(action)
                         }

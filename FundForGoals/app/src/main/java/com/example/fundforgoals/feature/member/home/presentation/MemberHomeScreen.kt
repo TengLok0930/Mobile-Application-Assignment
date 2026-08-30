@@ -146,7 +146,7 @@ private fun MemberHomeCompactScreen(
                         currentFund = selectedProject?.id
                             ?.let { uiState.projectFunds[it] }
                             ?: 0.0,
-                        aiOverview = uiState.selectedProject?.id
+                        aiOverview = selectedProject?.id
                             ?.let { uiState.projectAiOverviews[it] }
                             ?: "No AI overview available.",
                         onContributeClick = onContributeClick

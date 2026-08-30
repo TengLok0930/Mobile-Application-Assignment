@@ -4,7 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fundforgoals.supabase.model.Project
+import com.example.fundforgoals.supabase.repository.ContributorRepository
 import com.example.fundforgoals.supabase.repository.ProjectRepository
+import com.example.fundforgoals.supabase.repository.ProjectRequestRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +21,7 @@ data class ViewProjectUiState(
     val projects: List<Project> = emptyList(),
     val creatorNames: Map<Int, String> = emptyMap(),
     val projectFunds: Map<Int, Double> = emptyMap(),
+    val projectAiOverviews: Map<Int, String> = emptyMap(),
     val selectedProjectId: Int? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
@@ -34,12 +37,15 @@ class ViewProjectViewModel(
     private val currentUser: String =
         checkNotNull(savedStateHandle["currentUser"])
 
+    private val contributorRepository = ContributorRepository()
     private val projectRepository = ProjectRepository()
+    private val projectRequestRepository = ProjectRequestRepository()
     private val userRepository = UserRepository()
 
     private var allProjects: List<Project> = emptyList()
     private var creatorNames: Map<Int, String> = emptyMap()
-
+    private var projectAiOverviews: Map<Int, String> = emptyMap()
+    private var projectFunds: Map<Int, Double> = emptyMap()
     private val _uiState = MutableStateFlow(
         ViewProjectUiState(
             currentUser = currentUser
@@ -82,10 +88,23 @@ class ViewProjectViewModel(
                     }
                     .toMap()
 
+                val projectIds = allProjects.mapNotNull { it.id }
+
+                projectFunds = contributorRepository.getTotalFundsByProjectIds(projectIds)
+
+                projectAiOverviews = projectIds.associateWith { projectId ->
+                    projectRequestRepository.getProjectRequestByProjectId(projectId)
+                        ?.aiOverview
+                        ?.takeIf { it.isNotBlank() }
+                        ?: "No AI overview available."
+                }
+
                 _uiState.update {
                     it.copy(
                         projects = allProjects,
                         creatorNames = creatorNames,
+                        projectFunds = projectFunds,
+                        projectAiOverviews = projectAiOverviews,
                         selectedProjectId = allProjects.firstOrNull()?.id,
                         isLoading = false
                     )

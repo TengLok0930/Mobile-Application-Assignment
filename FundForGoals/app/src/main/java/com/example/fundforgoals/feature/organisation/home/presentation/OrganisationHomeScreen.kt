@@ -209,7 +209,7 @@ private fun OrganisationHomeCompactScreen(
                         creatorName = selectedProject?.let { uiState.creatorNames[it.createdBy] },
                         currentFund = selectedProject?.id?.let { uiState.projectFunds[it] } ?: 0.0,
                         warningCount = selectedProject?.id?.let { uiState.projectWarningCounts[it] } ?: 0,
-                        aiOverview = uiState.selectedProject?.id?.let { uiState.projectAiOverviews[it] } ?: "No AI overview available.",
+                        aiOverview = selectedProject?.id?.let { uiState.projectAiOverviews[it] } ?: "No AI overview available.",
                         onViewWarningsClick = { projectId ->
                             onAction(OrganisationHomeAction.OnViewWarningsClick(projectId))
                         }
