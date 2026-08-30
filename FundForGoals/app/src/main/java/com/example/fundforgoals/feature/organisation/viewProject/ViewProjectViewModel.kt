@@ -63,7 +63,10 @@ class ViewProjectViewModel(
             }
 
             try {
-                allProjects = projectRepository.getOngoingProjects()
+                val user = userRepository.getUserByUsername(currentUser)
+                allProjects = user?.id?.let { userId ->
+                    projectRepository.getOngoingNotOwnProjects(userId)
+                } ?: emptyList()
 
                 val creatorIds = allProjects
                     .map { it.createdBy }

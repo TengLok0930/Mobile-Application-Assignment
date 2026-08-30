@@ -7,6 +7,7 @@ import com.example.fundforgoals.supabase.model.Project
 import com.example.fundforgoals.supabase.repository.ContributorRepository
 import com.example.fundforgoals.supabase.repository.ProjectRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
+import com.example.fundforgoals.supabase.repository.WarningRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,7 @@ data class OrganisationHomeUiState(
     val projects: List<Project> = emptyList(),
     val creatorNames: Map<Int, String> = emptyMap(),
     val projectFunds: Map<Int, Double> = emptyMap(),
+    val projectWarningCounts: Map<Int, Int> = emptyMap(),
     val selectedProjectId: Int? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
@@ -32,14 +34,19 @@ data class OrganisationHomeUiState(
 class OrganisationHomeViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
     private val currentUser: String =
         checkNotNull(savedStateHandle["currentUser"])
 
     private val projectRepository = ProjectRepository()
     private val userRepository = UserRepository()
+    private val contributorRepository = ContributorRepository()
+    private val warningRepository = WarningRepository()
 
     private var allProjects: List<Project> = emptyList()
     private var creatorNames: Map<Int, String> = emptyMap()
+    private var projectFunds: Map<Int, Double> = emptyMap()
+    private var projectWarningCounts: Map<Int, Int> = emptyMap()
 
     private val _uiState = MutableStateFlow(
         OrganisationHomeUiState(currentUser = currentUser)
@@ -49,9 +56,6 @@ class OrganisationHomeViewModel(
     init {
         loadProjects()
     }
-
-    private val contributorRepository = ContributorRepository()
-    private var projectFunds: Map<Int, Double> = emptyMap()
 
     private fun loadProjects() {
         viewModelScope.launch {
@@ -72,7 +76,13 @@ class OrganisationHomeViewModel(
                     .toMap()
 
                 val projectIds = allProjects.mapNotNull { it.id }
+
                 projectFunds = contributorRepository.getTotalFundsByProjectIds(projectIds)
+
+                val warnings = warningRepository.getWarningsByProjectIds(projectIds)
+                projectWarningCounts = warnings
+                    .groupBy { it.projectId }
+                    .mapValues { (_, warningsForProject) -> warningsForProject.size }
 
                 _uiState.update {
                     it.copy(
@@ -80,8 +90,10 @@ class OrganisationHomeViewModel(
                         projects = allProjects,
                         creatorNames = creatorNames,
                         projectFunds = projectFunds,
+                        projectWarningCounts = projectWarningCounts,
                         selectedProjectId = allProjects.firstOrNull()?.id,
-                        isLoading = false
+                        isLoading = false,
+                        errorMessage = null
                     )
                 }
             } catch (exception: Exception) {
@@ -127,12 +139,12 @@ class OrganisationHomeViewModel(
                 }
             }
 
+            is OrganisationHomeAction.OnViewWarningsClick -> Unit
             OrganisationHomeAction.OnViewProjectClick -> Unit
             OrganisationHomeAction.OnNewProjectClick -> Unit
             OrganisationHomeAction.OnMessagesClick -> Unit
             OrganisationHomeAction.OnHomeClick -> Unit
             OrganisationHomeAction.OnProfileClick -> Unit
-
             OrganisationHomeAction.Refresh -> loadProjects()
         }
     }

@@ -62,6 +62,9 @@ import com.example.fundforgoals.core.ui.theme.FundForGoalsTheme
 import com.example.fundforgoals.supabase.model.Chat
 import com.example.fundforgoals.supabase.model.Chatroom
 import com.example.fundforgoals.supabase.model.Project
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ChatScreen(
@@ -680,11 +683,29 @@ private fun ChatBox(
             Text(text = content, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = timestamp,
+                text = timestamp.toDisplayDateTime(),
                 fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+private fun String.toDisplayDateTime(): String {
+    return try {
+        val normalized = replace(" ", "T").let {
+            if (it.endsWith("+00")) it + ":00" else it
+        }
+
+        val malaysiaZone = ZoneId.of("Asia/Kuala_Lumpur")
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+
+        OffsetDateTime
+            .parse(normalized)
+            .atZoneSameInstant(malaysiaZone)
+            .format(formatter)
+    } catch (e: Exception) {
+        this
     }
 }
 

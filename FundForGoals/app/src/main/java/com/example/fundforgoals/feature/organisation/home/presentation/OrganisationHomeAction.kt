@@ -8,5 +8,6 @@ sealed interface OrganisationHomeAction {
     data object OnMessagesClick : OrganisationHomeAction
     data object OnHomeClick : OrganisationHomeAction
     data object OnProfileClick : OrganisationHomeAction
+    data class OnViewWarningsClick(val projectId: Int) : OrganisationHomeAction
     data object Refresh : OrganisationHomeAction
 }

@@ -117,6 +117,18 @@ class ProjectRepository {
             .decodeList<Project>()
     }
 
+    suspend fun getOngoingNotOwnProjects(currentUserId: Int): List<Project> {
+        return supabase
+            .from("project")
+            .select {
+                filter {
+                    eq("status", "Ongoing")
+                    neq("created_by", currentUserId)
+                }
+            }
+            .decodeList<Project>()
+    }
+
     suspend fun getProjectsByIds(ids: List<Int>): List<Project> {
         if (ids.isEmpty()) return emptyList()
         return supabase
