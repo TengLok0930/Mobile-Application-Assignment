@@ -564,7 +564,7 @@ private fun ProjectDetailPane(
             }
 
             Text(
-                text = "Contributions: $${currentFund}",
+                text = "Contributions: RM %.2f".format(currentFund),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold

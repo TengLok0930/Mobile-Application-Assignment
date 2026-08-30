@@ -58,6 +58,21 @@ class ProjectRepository {
             }
     }
 
+    suspend fun updateProjectStatus(
+        id: Int,
+        status: String
+    ) {
+        supabase
+            .from("project")
+            .update(
+                mapOf("status" to status)
+            ) {
+                filter {
+                    eq("id", id)
+                }
+            }
+    }
+
     suspend fun deleteProject(id: Int) {
         supabase
             .from("project")
