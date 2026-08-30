@@ -45,6 +45,7 @@ import com.example.fundforgoals.core.ui.components.navigation.BackButton
 import com.example.fundforgoals.core.ui.theme.BrandAccentDark
 import com.example.fundforgoals.core.ui.theme.BrandAccentLight
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -668,7 +669,7 @@ private fun RequestDetailPane(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Created at: ${formatRequestDate(request.createdAt)}",
+            text = "Created at: ${request.createdAt.toDisplayDateTime()}",
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp
         )
@@ -779,14 +780,20 @@ private fun AdminRequestType.toCategoryTitle(): String {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-private fun formatRequestDate(date: String): String {
+private fun String.toDisplayDateTime(): String {
     return try {
-        val parsed = OffsetDateTime.parse(date)
-        parsed.format(
-            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
-        )
+        val normalized = replace(" ", "T").let {
+            if (it.endsWith("+00")) it + ":00" else it
+        }
+
+        val malaysiaZone = ZoneId.of("Asia/Kuala_Lumpur")
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+
+        OffsetDateTime
+            .parse(normalized)
+            .atZoneSameInstant(malaysiaZone)
+            .format(formatter)
     } catch (e: Exception) {
-        date
+        this
     }
 }

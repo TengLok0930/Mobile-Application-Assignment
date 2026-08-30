@@ -100,12 +100,31 @@ fun ViewProjectCompactScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             if (!showDetail) {
-                SearchBar(
-                    value = uiState.searchQuery,
-                    onValueChange = {
-                        onAction(ViewProjectAction.OnSearchQueryChanged(it))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    IconButton(
+                        onClick = { onAction(ViewProjectAction.OnHomeClick) },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back_40px),
+                            contentDescription = "Back"
+                        )
                     }
-                )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    SearchBar(
+                        value = uiState.searchQuery,
+                        onValueChange = {
+                            onAction(ViewProjectAction.OnSearchQueryChanged(it))
+                        }
+                    )
+                }
             }
         },
         bottomBar = {
@@ -202,6 +221,18 @@ fun ViewProjectExpandedScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
+                    IconButton(
+                        onClick = { onAction(ViewProjectAction.OnHomeClick) },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back_40px),
+                            contentDescription = "Back"
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     SearchBar(
                         value = uiState.searchQuery,
                         onValueChange = {

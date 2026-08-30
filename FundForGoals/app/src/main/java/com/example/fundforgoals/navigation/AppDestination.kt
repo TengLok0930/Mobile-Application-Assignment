@@ -67,6 +67,12 @@ sealed class AppDestination(val route: String) {
         }
     }
 
+    data object OrganisationWarningList : AppDestination("organisation_warning_list/{projectId}") {
+        fun createRoute(projectId: Int): String {
+            return "organisation_warning_list/$projectId"
+        }
+    }
+
     data object AdminMonitorDetail : AppDestination("admin_monitor_detail/{projectId}") {
         fun createRoute(projectId: String): String {
             return "admin_monitor_detail/$projectId"

@@ -12,7 +12,8 @@ fun OrganisationHomeRoute(
     onCreateProjectClick: (String) -> Unit,
     onViewProjectClick: () -> Unit,
     onMessagesClick: (currentUser: String) -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    onViewWarningsClick: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val contentType = rememberContentType()
@@ -28,6 +29,9 @@ fun OrganisationHomeRoute(
                 OrganisationHomeAction.OnNewProjectClick -> onCreateProjectClick(uiState.currentUser)
                 OrganisationHomeAction.OnMessagesClick -> onMessagesClick(uiState.currentUser)
                 OrganisationHomeAction.OnProfileClick -> onProfileClick()
+                is OrganisationHomeAction.OnViewWarningsClick -> {
+                    onViewWarningsClick(action.projectId)
+                }
                 is OrganisationHomeAction.OnSearchQueryChanged -> viewModel.onAction(action)
                 OrganisationHomeAction.OnHomeClick -> viewModel.onAction(action)
                 OrganisationHomeAction.Refresh -> viewModel.onAction(action)

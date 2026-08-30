@@ -58,6 +58,21 @@ class ProjectRepository {
             }
     }
 
+    suspend fun updateProjectStatus(
+        id: Int,
+        status: String
+    ) {
+        supabase
+            .from("project")
+            .update(
+                mapOf("status" to status)
+            ) {
+                filter {
+                    eq("id", id)
+                }
+            }
+    }
+
     suspend fun deleteProject(id: Int) {
         supabase
             .from("project")
@@ -97,6 +112,18 @@ class ProjectRepository {
             .select {
                 filter {
                     eq("status", "Ongoing")
+                }
+            }
+            .decodeList<Project>()
+    }
+
+    suspend fun getOngoingNotOwnProjects(currentUserId: Int): List<Project> {
+        return supabase
+            .from("project")
+            .select {
+                filter {
+                    eq("status", "Ongoing")
+                    neq("created_by", currentUserId)
                 }
             }
             .decodeList<Project>()

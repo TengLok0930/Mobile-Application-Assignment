@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -204,7 +205,11 @@ private fun OrganisationHomeCompactScreen(
                     ProjectDetailPane(
                         project = selectedProject,
                         creatorName = selectedProject?.let { uiState.creatorNames[it.createdBy] },
-                        currentFund = selectedProject?.id?.let { uiState.projectFunds[it] } ?: 0.0
+                        currentFund = selectedProject?.id?.let { uiState.projectFunds[it] } ?: 0.0,
+                        warningCount = selectedProject?.id?.let { uiState.projectWarningCounts[it] } ?: 0,
+                        onViewWarningsClick = { projectId ->
+                            onAction(OrganisationHomeAction.OnViewWarningsClick(projectId))
+                        }
                     )
                 }
             }
@@ -332,7 +337,11 @@ private fun OrganisationHomeExpandedScreen(
                 ProjectDetailPane(
                     project = uiState.selectedProject,
                     creatorName = uiState.selectedProject?.let { uiState.creatorNames[it.createdBy] },
-                    currentFund = uiState.selectedProject?.id?.let { uiState.projectFunds[it] } ?: 0.0
+                    currentFund = uiState.selectedProject?.id?.let { uiState.projectFunds[it] } ?: 0.0,
+                    warningCount = uiState.selectedProject?.id?.let { uiState.projectWarningCounts[it] } ?: 0,
+                    onViewWarningsClick = { projectId ->
+                        onAction(OrganisationHomeAction.OnViewWarningsClick(projectId))
+                    }
                 )
             }
         }
@@ -474,7 +483,9 @@ private fun ProjectCard(
 private fun ProjectDetailPane(
     project: Project?,
     creatorName: String? = null,
-    currentFund: Double = 0.0
+    currentFund: Double = 0.0,
+    warningCount: Int = 0,
+    onViewWarningsClick: (Int) -> Unit = {}
 ) {
     val accentColor = if (isSystemInDarkTheme()) {
         BrandAccentDark
@@ -539,6 +550,17 @@ private fun ProjectDetailPane(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
+
+                    if (warningCount > 0) {
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = if (warningCount == 1) "1 warning reported" else "$warningCount warnings reported",
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
 
@@ -564,7 +586,7 @@ private fun ProjectDetailPane(
             }
 
             Text(
-                text = "Contributions: $${currentFund}",
+                text = "Contributions: RM %.2f".format(currentFund),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
@@ -589,11 +611,33 @@ private fun ProjectDetailPane(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Button(
-                onClick = { },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Contribute")
+            if (warningCount > 0) {
+                Button(
+                    onClick = {
+                        project.id?.let(onViewWarningsClick)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                ) {
+                    Text(
+                        text = if (warningCount == 1) {
+                            "View warning"
+                        } else {
+                            "View warnings"
+                        }
+                    )
+                }
+            } else {
+                OutlinedButton(
+                    onClick = { },
+                    enabled = false,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("No warnings")
+                }
             }
         }
     }

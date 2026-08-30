@@ -44,6 +44,7 @@ import com.example.fundforgoals.feature.organisation.profile.presentation.Organi
 import com.example.fundforgoals.feature.organisation.profile.presentation.OrganisationProfileViewModel
 import com.example.fundforgoals.feature.organisation.viewProject.ViewProjectRoute
 import com.example.fundforgoals.feature.organisation.viewProject.ViewProjectViewModel
+import com.example.fundforgoals.feature.organisation.warninglist.presentation.OrganisationWarningListRoute
 
 @Composable
 fun AppNavHost(
@@ -346,6 +347,9 @@ fun AppNavHost(
                     ) {
                         launchSingleTop = true
                     }
+                },
+                onViewWarningsClick = { projectId ->
+                    navController.navigate(AppDestination.OrganisationWarningList.createRoute(projectId))
                 }
             )
         }
@@ -454,6 +458,20 @@ fun AppNavHost(
                 onBackClick = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable(
+            route = AppDestination.OrganisationWarningList.route,
+            arguments = listOf(
+                navArgument("projectId") {
+                    type = NavType.IntType
+                }
+            )
+        ) {
+            OrganisationWarningListRoute(
+                viewModel = viewModel(),
+                onBackClick = { navController.popBackStack() }
             )
         }
 
