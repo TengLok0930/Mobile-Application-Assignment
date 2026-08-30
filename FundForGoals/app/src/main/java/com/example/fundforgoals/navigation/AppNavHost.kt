@@ -12,11 +12,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.fundforgoals.core.session.SessionManager
+import com.example.fundforgoals.feature.admin.createWarning.presentation.CreateWarningRoute
+import com.example.fundforgoals.feature.admin.createWarning.presentation.CreateWarningViewModel
+import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeAction
 import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeRoute
 import com.example.fundforgoals.feature.admin.home.presentation.AdminHomeViewModel
 import com.example.fundforgoals.feature.admin.profile.presentation.AdminProfileRoute
 import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestRoute
 import com.example.fundforgoals.feature.admin.requests.presentation.AdminRequestViewModel
+import com.example.fundforgoals.feature.admin.viewWarning.presentation.ViewWarningRoute
+import com.example.fundforgoals.feature.admin.viewWarning.presentation.ViewWarningViewModel
 import com.example.fundforgoals.feature.auth.changepassword.presentation.ChangePasswordRoute
 import com.example.fundforgoals.feature.auth.forgotpassword.presentation.ForgotPasswordRoute
 import com.example.fundforgoals.feature.auth.login.presentation.LoginRoute
@@ -528,9 +533,10 @@ fun AppNavHost(
 
         composable(route = AppDestination.AdminHome.route) {
             val adminUser = sessionManager.getUsername().orEmpty()
+            val adminHomeViewModel: AdminHomeViewModel = viewModel()
 
             AdminHomeRoute(
-                viewModel = viewModel<AdminHomeViewModel>(),
+                viewModel = adminHomeViewModel,
                 onRequestClick = {
                     navController.navigate(AppDestination.AdminRequest.route) {
                         launchSingleTop = true
@@ -541,20 +547,51 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onMonitorClick = { /* handled internally by AdminHomeRoute for compact; no-op here */ },
+                onMonitorClick = { projectId ->
+                    adminHomeViewModel.onAction(AdminHomeAction.OnMonitorClick(projectId))
+                },
                 onWarnProjectClick = { projectId ->
-                    navController.navigate(
-                        AppDestination.AdminWarningDetail.createRoute(projectId.toString())
-                    ) {
+                    navController.navigate(AppDestination.AdminCreateWarning.createRoute(projectId)) {
                         launchSingleTop = true
                     }
                 },
                 onViewChatroomClick = { projectId ->
-                    navController.navigate(
-                        AppDestination.AdminChatroom.createRoute(adminUser, projectId)
-                    ) {
+                    navController.navigate(AppDestination.AdminChatroom.createRoute(adminUser, projectId)) {
                         launchSingleTop = true
                     }
+                },
+                onViewWarningClick = { projectId ->
+                    navController.navigate(AppDestination.AdminViewWarning.createRoute(projectId)) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = AppDestination.AdminCreateWarning.route,
+            arguments = listOf(
+                navArgument("projectId") { type = NavType.StringType }
+            )
+        ) {
+            CreateWarningRoute(
+                viewModel = viewModel<CreateWarningViewModel>(),
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = AppDestination.AdminViewWarning.route,
+            arguments = listOf(
+                navArgument("projectId") { type = NavType.IntType }
+            )
+        ) {
+            ViewWarningRoute(
+                viewModel = viewModel<ViewWarningViewModel>(),
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

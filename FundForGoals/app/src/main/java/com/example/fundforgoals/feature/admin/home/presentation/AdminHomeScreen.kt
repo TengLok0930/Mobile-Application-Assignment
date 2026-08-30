@@ -1,5 +1,6 @@
 package com.example.fundforgoals.feature.admin.home.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,20 +27,31 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.fundforgoals.R
 import com.example.fundforgoals.app.navigation.AdminBottomBar
 import com.example.fundforgoals.app.navigation.AdminNavigationRail
 import com.example.fundforgoals.core.ui.components.input.SearchBar
@@ -52,40 +64,56 @@ fun AdminHomeScreen(
     onAction: (AdminHomeAction) -> Unit,
     onWarnProjectClick: (Int) -> Unit,
     onViewChatroomClick: (Int) -> Unit,
+    onViewWarningClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     isCompact: Boolean = true
 ) {
     if (isCompact) {
-        AdminHomeCompactScreen(uiState, onAction, modifier)
+        AdminHomeCompactScreen(uiState, onAction, onWarnProjectClick, onViewChatroomClick, onViewWarningClick, modifier)
     } else {
-        AdminHomeExpandedScreen(uiState, onAction, onWarnProjectClick, onViewChatroomClick, modifier)
+        AdminHomeExpandedScreen(uiState, onAction, onWarnProjectClick, onViewChatroomClick, onViewWarningClick, modifier)
     }
 }
-
 @Composable
 private fun AdminHomeCompactScreen(
     uiState: AdminHomeUiState,
     onAction: (AdminHomeAction) -> Unit,
+    onWarnProjectClick: (Int) -> Unit,
+    onViewChatroomClick: (Int) -> Unit,
+    onViewWarningClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showDetail by rememberSaveable { mutableStateOf(false) }
+    var selectedProjectId by rememberSaveable { mutableStateOf<Int?>(null) }
+
+    val selectedProject = uiState.projects.firstOrNull { it.id == selectedProjectId }
+
+    BackHandler(enabled = showDetail) {
+        showDetail = false
+    }
+
     Scaffold(
         modifier = modifier
             .statusBarsPadding()
             .fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            SearchBar(
-                value = uiState.searchQuery,
-                onValueChange = { onAction(AdminHomeAction.OnSearchQueryChanged(it)) }
-            )
+            if (!showDetail) {
+                SearchBar(
+                    value = uiState.searchQuery,
+                    onValueChange = { onAction(AdminHomeAction.OnSearchQueryChanged(it)) }
+                )
+            }
         },
         bottomBar = {
-            AdminBottomBar(
-                selectedItem = "home",
-                onRequestsClick = { onAction(AdminHomeAction.OnRequestClick) },
-                onHomeClick = { onAction(AdminHomeAction.OnHomeClick) },
-                onProfileClick = { onAction(AdminHomeAction.OnProfileClick) }
-            )
+            if (!showDetail) {
+                AdminBottomBar(
+                    selectedItem = "home",
+                    onRequestsClick = { onAction(AdminHomeAction.OnRequestClick) },
+                    onHomeClick = { onAction(AdminHomeAction.OnHomeClick) },
+                    onProfileClick = { onAction(AdminHomeAction.OnProfileClick) }
+                )
+            }
         }
     ) { innerPadding ->
         Surface(
@@ -94,14 +122,43 @@ private fun AdminHomeCompactScreen(
                 .padding(innerPadding),
             color = MaterialTheme.colorScheme.background
         ) {
-            AdminHomeContent(
-                uiState = uiState,
-                onAction = onAction,
-                showSelection = false,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
-            )
+            if (!showDetail) {
+                AdminHomeContent(
+                    uiState = uiState,
+                    onAction = { action ->
+                        if (action is AdminHomeAction.OnMonitorClick) {
+                            selectedProjectId = action.projectId
+                            showDetail = true
+                        } else {
+                            onAction(action)
+                        }
+                    },
+                    showSelection = false,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                )
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    IconButton(
+                        onClick = { showDetail = false }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back_40px),
+                            contentDescription = "Back"
+                        )
+                    }
+
+                    AdminProjectDetailPane(
+                        project = selectedProject,
+                        isCancelling = uiState.isCancelling,
+                        onCancelClick = { onAction(AdminHomeAction.OnCancelProjectClick) },
+                        onWarnClick = { selectedProject?.id?.let(onWarnProjectClick) },
+                        onChatroomClick = { selectedProject?.id?.let(onViewChatroomClick) },
+                        onViewWarningClick = { selectedProject?.id?.let(onViewWarningClick) }
+                    )
+                }
+            }
         }
     }
 }
@@ -112,6 +169,7 @@ private fun AdminHomeExpandedScreen(
     onAction: (AdminHomeAction) -> Unit,
     onWarnProjectClick: (Int) -> Unit,
     onViewChatroomClick: (Int) -> Unit,
+    onViewWarningClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -167,7 +225,8 @@ private fun AdminHomeExpandedScreen(
                     isCancelling = uiState.isCancelling,
                     onCancelClick = { onAction(AdminHomeAction.OnCancelProjectClick) },
                     onWarnClick = { uiState.selectedProject?.id?.let(onWarnProjectClick) },
-                    onChatroomClick = { uiState.selectedProject?.id?.let(onViewChatroomClick) }
+                    onChatroomClick = { uiState.selectedProject?.id?.let(onViewChatroomClick) },
+                    onViewWarningClick = { uiState.selectedProject?.id?.let(onViewWarningClick) }
                 )
             }
         }
@@ -320,7 +379,8 @@ private fun AdminProjectDetailPane(
     isCancelling: Boolean,
     onCancelClick: () -> Unit,
     onWarnClick: () -> Unit,
-    onChatroomClick: () -> Unit
+    onChatroomClick: () -> Unit,
+    onViewWarningClick: () -> Unit
 ) {
     val accentColor = if (isSystemInDarkTheme()) BrandAccentDark else BrandAccentLight
 
@@ -358,11 +418,16 @@ private fun AdminProjectDetailPane(
             fontWeight = FontWeight.Medium
         )
 
-        Text(
-            text = if (project.warningCount == 1) "1 warning" else "${project.warningCount} warnings",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 14.sp
-        )
+        TextButton(
+            onClick = onViewWarningClick,
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Text(
+                text = if (project.warningCount == 1) "1 warning" else "${project.warningCount} warnings",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 14.sp
+            )
+        }
 
         Text(
             text = "Overview",

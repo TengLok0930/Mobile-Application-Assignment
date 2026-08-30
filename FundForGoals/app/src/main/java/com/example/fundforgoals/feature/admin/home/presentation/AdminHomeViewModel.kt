@@ -108,7 +108,9 @@ class AdminHomeViewModel : ViewModel() {
             }
 
             AdminHomeAction.OnCancelProjectClick -> cancelSelectedProject()
-
+            AdminHomeAction.OnClearSelection -> {
+                _uiState.update { it.copy(selectedProjectId = null) }
+            }
             AdminHomeAction.OnRequestClick -> Unit
             AdminHomeAction.OnHomeClick -> Unit
             AdminHomeAction.OnProfileClick -> Unit

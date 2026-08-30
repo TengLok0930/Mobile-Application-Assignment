@@ -41,6 +41,16 @@ sealed class AppDestination(val route: String) {
     }
     object OrganisationPastProjects : AppDestination("organisation_past_projects")
     data object AdminHome : AppDestination("admin_home")
+
+    data object AdminCreateWarning : AppDestination("admin_create_warning/{projectId}") {
+        fun createRoute(projectId: Int) : String {
+            return "admin_create_warning/$projectId"
+        }
+    }
+
+    data object AdminViewWarning : AppDestination("admin_view_warning/{projectId}") {
+        fun createRoute(projectId: Int) = "admin_view_warning/$projectId"
+    }
     data object AdminRequest : AppDestination("admin_request")
     data object AdminProfile : AppDestination("admin_profile")
     data object Chat : AppDestination("chat/{currentUser}") {
@@ -48,7 +58,6 @@ sealed class AppDestination(val route: String) {
             return "chat/$currentUser"
         }
     }
-
     data object AdminChatroom : AppDestination("admin_chatroom/{currentUser}/{projectId}") {
         fun createRoute(currentUser: String, projectId: Int) = "admin_chatroom/$currentUser/$projectId"
     }
@@ -70,18 +79,6 @@ sealed class AppDestination(val route: String) {
     data object OrganisationWarningList : AppDestination("organisation_warning_list/{projectId}") {
         fun createRoute(projectId: Int): String {
             return "organisation_warning_list/$projectId"
-        }
-    }
-
-    data object AdminMonitorDetail : AppDestination("admin_monitor_detail/{projectId}") {
-        fun createRoute(projectId: String): String {
-            return "admin_monitor_detail/$projectId"
-        }
-    }
-
-    data object AdminWarningDetail : AppDestination("admin_warning_detail/{projectId}") {
-        fun createRoute(projectId: String): String {
-            return "admin_warning_detail/$projectId"
         }
     }
 }
