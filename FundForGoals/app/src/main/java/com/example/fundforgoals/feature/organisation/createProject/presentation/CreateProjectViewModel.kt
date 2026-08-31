@@ -140,7 +140,7 @@ class CreateProjectViewModel : ViewModel() {
                         desc = state.description.trim(),
                         createdBy = user.id ?: throw IllegalStateException("User ID not found."),
                         fundGoal = goalAmount,
-                        avatarUrl = "",
+                        avatarUrl = "https://gravatar.com/avatar/98a43d9c65d2d88226e4173c6a35c859?s=400&d=identicon&r=x",
                         status = "Pending",
                         hasCert = false
                     )

@@ -236,19 +236,6 @@ private fun AdminProfileContent(
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
-
-                TextButton(
-                    onClick = { onAction(AdminProfileAction.OnChangePasswordClick) },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Text(
-                        text = "Change Password",
-                        color = accentColor,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Medium,
-                        textDecoration = TextDecoration.Underline
-                    )
-                }
             }
         }
     }

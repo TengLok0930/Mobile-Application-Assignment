@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.fundforgoals.ai.GeminiRepository
 import com.example.fundforgoals.supabase.model.ProjectRequest
 import com.example.fundforgoals.supabase.model.UserRequest
+import com.example.fundforgoals.supabase.repository.ChatroomRepository
+import com.example.fundforgoals.supabase.repository.ContributorRepository
 import com.example.fundforgoals.supabase.repository.ProjectRepository
 import com.example.fundforgoals.supabase.repository.ProjectRequestRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
@@ -58,6 +60,8 @@ class AdminRequestViewModel : ViewModel() {
     private val userRequestRepository = UserRequestRepository()
     private val projectRepository = ProjectRepository()
     private val projectRequestRepository = ProjectRequestRepository()
+    private val chatroomRepository = ChatroomRepository()
+    private val contributorRepository = ContributorRepository()
 
     private var rawUserRequests: List<UserRequest> = emptyList()
     private var rawProjectRequests: List<ProjectRequest> = emptyList()
@@ -333,6 +337,15 @@ class AdminRequestViewModel : ViewModel() {
                         val existingRequest = rawUserRequests.firstOrNull { it.id == requestId }
                             ?: throw IllegalStateException("User request not found.")
 
+                        if (newStatus.equals("rejected", ignoreCase = true)) {
+                            userRequestRepository.deleteUserRequest(requestId)
+                            userRepository.deleteUser(existingRequest.userId)
+                            return@launch loadRequests(
+                                preserveCategorySelection = true,
+                                preserveSelectedRequest = false
+                            )
+                        }
+
                         if (existingRequest.status.equals(newStatus, ignoreCase = true)) {
                             _uiState.update { it.copy(isLoading = false) }
                             return@launch
@@ -357,6 +370,15 @@ class AdminRequestViewModel : ViewModel() {
                         val requestId = selectedRequestId.removePrefix("org_").toInt()
                         val existingRequest = rawUserRequests.firstOrNull { it.id == requestId }
                             ?: throw IllegalStateException("Organisation request not found.")
+
+                        if (newStatus.equals("rejected", ignoreCase = true)) {
+                            userRequestRepository.deleteUserRequest(requestId)
+                            userRepository.deleteUser(existingRequest.userId)
+                            return@launch loadRequests(
+                                preserveCategorySelection = true,
+                                preserveSelectedRequest = false
+                            )
+                        }
 
                         if (existingRequest.status.equals(newStatus, ignoreCase = true)) {
                             _uiState.update { it.copy(isLoading = false) }
@@ -398,6 +420,31 @@ class AdminRequestViewModel : ViewModel() {
                                 id = existingRequest.projectId,
                                 status = newProjectStatus
                             )
+                        }
+
+                        if (newStatus.equals("approved", ignoreCase = true)) {
+                            val project = projectRepository.getProjectById(existingRequest.projectId)
+                                ?: throw IllegalStateException("Approved project not found.")
+
+                            val existingChatroom = chatroomRepository.getChatroomByProjectId(existingRequest.projectId)
+                            if (existingChatroom == null) {
+                                chatroomRepository.addChatroom(existingRequest.projectId)
+                            }
+
+                            val existingContributor = contributorRepository
+                                .getContributorsByProjectIds(listOf(existingRequest.projectId))
+                                .firstOrNull { contributor ->
+                                    contributor.project == existingRequest.projectId &&
+                                            contributor.userId == project.createdBy
+                                }
+
+                            if (existingContributor == null) {
+                                contributorRepository.addContributor(
+                                    userId = project.createdBy,
+                                    projectId = existingRequest.projectId,
+                                    fundAmount = 0.0
+                                )
+                            }
                         }
                     }
 

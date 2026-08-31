@@ -44,7 +44,6 @@ class AdminProfileViewModel : ViewModel() {
                     )
                 }
             }
-            AdminProfileAction.OnChangePasswordClick -> Unit
             AdminProfileAction.OnLogoutClick -> Unit
             AdminProfileAction.OnRequestsClick -> Unit
             AdminProfileAction.OnHomeClick -> Unit

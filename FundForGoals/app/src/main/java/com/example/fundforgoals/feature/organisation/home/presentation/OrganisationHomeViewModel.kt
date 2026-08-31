@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.fundforgoals.supabase.model.Project
 import com.example.fundforgoals.supabase.repository.ContributorRepository
 import com.example.fundforgoals.supabase.repository.ProjectRepository
+import com.example.fundforgoals.supabase.repository.ProjectRequestRepository
 import com.example.fundforgoals.supabase.repository.UserRepository
 import com.example.fundforgoals.supabase.repository.WarningRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,7 @@ data class OrganisationHomeUiState(
     val creatorNames: Map<Int, String> = emptyMap(),
     val projectFunds: Map<Int, Double> = emptyMap(),
     val projectWarningCounts: Map<Int, Int> = emptyMap(),
+    val projectAiOverviews: Map<Int, String> = emptyMap(),
     val selectedProjectId: Int? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
@@ -39,6 +41,7 @@ class OrganisationHomeViewModel(
         checkNotNull(savedStateHandle["currentUser"])
 
     private val projectRepository = ProjectRepository()
+    private val projectRequestRepository = ProjectRequestRepository()
     private val userRepository = UserRepository()
     private val contributorRepository = ContributorRepository()
     private val warningRepository = WarningRepository()
@@ -47,6 +50,7 @@ class OrganisationHomeViewModel(
     private var creatorNames: Map<Int, String> = emptyMap()
     private var projectFunds: Map<Int, Double> = emptyMap()
     private var projectWarningCounts: Map<Int, Int> = emptyMap()
+    private var projectAiOverviews: Map<Int, String> = emptyMap()
 
     private val _uiState = MutableStateFlow(
         OrganisationHomeUiState(currentUser = currentUser)
@@ -77,6 +81,13 @@ class OrganisationHomeViewModel(
 
                 val projectIds = allProjects.mapNotNull { it.id }
 
+                projectAiOverviews = projectIds.associateWith { projectId ->
+                    projectRequestRepository.getProjectRequestByProjectId(projectId)
+                        ?.aiOverview
+                        ?.takeIf { it.isNotBlank() }
+                        ?: "No AI overview available."
+                }
+
                 projectFunds = contributorRepository.getTotalFundsByProjectIds(projectIds)
 
                 val warnings = warningRepository.getWarningsByProjectIds(projectIds)
@@ -91,6 +102,7 @@ class OrganisationHomeViewModel(
                         creatorNames = creatorNames,
                         projectFunds = projectFunds,
                         projectWarningCounts = projectWarningCounts,
+                        projectAiOverviews = projectAiOverviews,
                         selectedProjectId = allProjects.firstOrNull()?.id,
                         isLoading = false,
                         errorMessage = null

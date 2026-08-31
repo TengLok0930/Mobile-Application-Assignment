@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -129,6 +131,7 @@ private fun AdminHomeCompactScreen(
                         if (action is AdminHomeAction.OnMonitorClick) {
                             selectedProjectId = action.projectId
                             showDetail = true
+                            onAction(action)
                         } else {
                             onAction(action)
                         }
@@ -401,7 +404,8 @@ private fun AdminProjectDetailPane(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .padding(20.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
@@ -437,6 +441,20 @@ private fun AdminProjectDetailPane(
 
         Text(
             text = project.overview,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 16.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "AI Overview",
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium
+        )
+
+        Text(
+            text = project.aiOverview,
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp
         )

@@ -642,14 +642,6 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 },
-                onChangePasswordClick = {
-                    val currentUser = sessionManager.getUsername().orEmpty()
-                    if (currentUser.isNotBlank()) {
-                        navController.navigate(AppDestination.ChangePassword.createRoute(currentUser)) {
-                            launchSingleTop = true
-                        }
-                    }
-                },
                 onAppearanceClick = {
                     onToggleTheme()
                 },

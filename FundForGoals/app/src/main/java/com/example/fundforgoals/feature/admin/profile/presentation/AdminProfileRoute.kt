@@ -11,7 +11,6 @@ import com.example.fundforgoals.core.util.rememberContentType
 fun AdminProfileRoute(
     onRequestsClick: () -> Unit,
     onHomeClick: () -> Unit,
-    onChangePasswordClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onAppearanceClick: () -> Unit,
     isDarkTheme: Boolean,
@@ -31,7 +30,6 @@ fun AdminProfileRoute(
             when (action) {
                 AdminProfileAction.OnRequestsClick -> onRequestsClick()
                 AdminProfileAction.OnHomeClick -> onHomeClick()
-                AdminProfileAction.OnChangePasswordClick -> onChangePasswordClick()
                 AdminProfileAction.OnLogoutClick -> onLogoutClick()
                 AdminProfileAction.OnAppearanceClick -> onAppearanceClick()
                 else -> viewModel.onAction(action)

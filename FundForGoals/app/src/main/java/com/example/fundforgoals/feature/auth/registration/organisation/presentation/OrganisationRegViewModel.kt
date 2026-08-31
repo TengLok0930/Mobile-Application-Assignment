@@ -151,7 +151,7 @@ class OrganisationRegViewModel : ViewModel() {
                         name = companyName,
                         password = normalizedState.password,
                         socialLink = companyProfileUrl,
-                        avatarUrl = "",
+                        avatarUrl = "https://gravatar.com/avatar/7462f2bae9324ee53865e09f9286e94e?s=400&d=identicon&r=x",
                         userType = "ORGANISATION",
                         isApproved = false
                     )
